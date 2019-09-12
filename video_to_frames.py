@@ -2,84 +2,111 @@ import os
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import re
+import time
 
 
-def blur():
-    # construct the argument parse and parse the arguments
-    # ap = argparse.ArgumentParser()
-    # ap.add_argument("-i", "--images", required=True,
-    #                 help="data/images")
-    # ap.add_argument("-t", "--threshold", type=float, default=100.0,
-    #                 help="focus measures that fall below this value will be considered 'blurry'")
-    # args = vars(ap.parse_args())
-    i = 0
+def atoi(text):
+    return int(text) if text.isdigit() else text
+
+
+def natural_keys(text):
+    """
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    """
+    return [atoi(c) for c in re.split(r'(\d+)', text)]
+
+
+def blur(video_name_no_extension):
     fm_list = []
     blurry_list = []
-    while i < 4236:
-        image_number = i
+    print("Video name:", video_name_no_extension)
+    # while image_number < video_length:
+    for root, dirs, files in os.walk("data/frames/" + video_name_no_extension):
+        for image in sorted(files, key=natural_keys):
+            with open(os.path.join(root, image), "r") as auto:
+                image_read = cv2.imread(root + '/' + image)
+                # image = image[0:495, 0:800] # cropping
+                gray = cv2.cvtColor(image_read, cv2.COLOR_BGR2GRAY)
+                fm = cv2.Laplacian(gray, cv2.CV_64F).var()
+                fm_list.append(fm)
+    # printing
+    average = round(sum(fm_list) / len(fm_list), 2)
+    print(' ' * 5, "Average of blurriness:", average)
+    for l in fm_list:
+        if l < 110:
+            blurry_list.append(fm_list.index(l))
+    print(' ' * 5, "List of blurry images", blurry_list)
+    print(' ' * 5, "Amount of blurry images", len(blurry_list), "|", "in", len(fm_list), "total amount of images")
+    print(' ' * 5, "Percentage of blurry images", round(len(blurry_list) / len(fm_list), 2) * 100, '%')
+    return fm_list, average
 
-        # Create an Image object from an Image
-        # image_object = Image.open("data/images/image{}.jpg".format(image_number))
-        # width, height = image_object.size
 
-        # Crop the iceberg portion
-        # cropped = image_object.crop((0, 0, width, height / 1.23))
-
-        image = cv2.imread("data/at24fps/image{}.jpg".format(image_number))
-        # image = image[0:495, 0:800]
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        fm = cv2.Laplacian(gray, cv2.CV_64F).var()
-        text = "Not Blurry"
-        fm_list.append(fm)
-        if fm < 100:
-            text = "Blurry"
-
-        # # show the image
-        # cv2.putText(image, "{}: {:.2f}".format(text, fm), (10, 30),
-        #             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 3)
-        # cv2.imshow("Image", image)
-        # key = cv2.waitKey(0)
-        i += 1
-    print(fm_list)
+def plot(fm_list):
+    plt.figure()
     y = fm_list
-    x = np.arange(0, 4236, 1)
-    plt.xticks(np.arange(0, 4236, step=5))
-    # plotting the points
+    x = np.arange(0, 180, 1)
+    plt.xticks(np.arange(0, 180, step=2))
+
     plt.plot(x, y, color='green', linestyle='dashed', linewidth=3,
              marker='o', markerfacecolor='blue', markersize=8)
     for x, y in zip(x, y):
         plt.text(x, y, str(x), color="red", fontsize=6)
-    plt.grid
-    plt.show()
-    average = sum(fm_list) / len(fm_list)
-    print(average)
-    for l in fm_list:
-        if l < 110:
-            blurry_list.append(fm_list.index(l))
-    print(blurry_list)
-    print(len(blurry_list))
+    plt.grid()
+    plt.pause(0.0001)
 
 
-def get_frame(video_name):
-    video = cv2.VideoCapture("data/{}".format(video_name))
+def get_frame(video_root, video_name):
+    video = cv2.VideoCapture(video_root + '/' + video_name)
     frame_rate = float(video.get(cv2.CAP_PROP_FPS))
     number_of_frames = float(video.get(cv2.CAP_PROP_FRAME_COUNT))
-    video_length = number_of_frames / frame_rate
+    video_length = round(number_of_frames / frame_rate)
+    print(video_length)
     sec = 0
-    while sec <= number_of_frames:
-        # video.set(cv2.CAP_PROP_POS_FRAMES, frame_rate * sec)
-        video.set(cv2.CAP_PROP_POS_FRAMES, sec)
+    video_name_no_extension, video_name_extension = os.path.splitext(video_name)
+    os.makedirs("data/frames/" + video_name_no_extension, exist_ok=True)
+    while sec <= video_length - 1:  # Removing last frame
+        video.set(cv2.CAP_PROP_POS_FRAMES, frame_rate * sec)
+        # video.set(cv2.CAP_PROP_POS_FRAMES, sec)
         has_frames, image = video.read()
-        cv2.imwrite("data/at24fps/image" + str(sec) + ".jpg", image)  # save frame as JPG file
+        cv2.imwrite("data/frames/" + video_name_no_extension + "/image" + str(sec) + ".jpg",
+                    image)  # save frame as JPG file
         sec += 1
+    return video_name_no_extension
 
 
 def main():
-    # os.system("rm -r data/images/*")  # This deletes all images created
-    video_name = "T20190821174253.AVI"
-    # get_frame(video_name)
-    blur()
+    blurry_averages = []
+    plt.ion()
+    videos_list, videos_root_list = videos_reader()
+    # video_name = "T20190821174253.AVI"
+    for video_name, video_root in zip(videos_list, videos_root_list):
+        video_name_no_extension, video_name_extension = os.path.splitext(video_name)
+        get_frame(video_root, video_name)
+        fm_list, average = blur(video_name_no_extension)
+        blurry_averages.append(average)
+        # plot(fm_list)
+        print('*' * 100)
+    print("List of averages", blurry_averages)
+    average_of_averages = sum(blurry_averages) / len(blurry_averages)
+    print("Average of averages:", average_of_averages)
+    # plt.show()
+    # input("Press [enter] to continue.")
+
+
+def videos_reader():
+    videos_list = []
+    root_list = []
+    for root, dirs, files in os.walk("data/videos"):
+        for file in files:
+            with open(os.path.join(root, file), "r") as auto:
+                root_list.append(root)
+                videos_list.append(file)
+    return videos_list, root_list
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    print("My program took", round(time.time() - start_time, 2), "seconds to run")
