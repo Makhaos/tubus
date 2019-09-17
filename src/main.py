@@ -5,8 +5,8 @@ from src import video_to_frames, blur, video_reader
 
 
 def main():
-    videos_folder = "/home/manuel/PycharmProjects/tubus_project/data/videos/0820/12"
-    frames_folder = "/home/manuel/PycharmProjects/tubus_project/data/frames"
+    videos_folder = "/home/staffanbjorkdahl/PycharmProjects/tubus/data/videos/0822/10"
+    frames_folder = "/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames"
     videos_list, videos_root_list = video_reader.videos_reader(videos_folder)
 
     # Loop through all videos
