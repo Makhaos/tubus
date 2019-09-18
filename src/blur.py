@@ -1,10 +1,11 @@
 import os
-import common.natural_keys as natural_keys
+import natural_keys
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 
 
+# TODO updates needed
 def calculate_laplacian(video_name_no_extension, frames_folder):
     fm_list = []
     for root, dirs, files in os.walk(frames_folder + video_name_no_extension):

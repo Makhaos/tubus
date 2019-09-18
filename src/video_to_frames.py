@@ -12,8 +12,6 @@ def get_frame(video_root, video_name, frames_folder, video_name_no_extension):
     while sec <= video_length - 1:  # Removing last frame
         video.set(cv2.CAP_PROP_POS_FRAMES, frame_rate * sec)
         has_frames, image = video.read()
-        cv2.imwrite(frames_folder + video_name_no_extension + "/image" + str(
-            sec) + ".jpg",
-                    image)
+        cv2.imwrite(frames_folder + '/' + video_name_no_extension + "/image" + str(sec) + ".jpg", image)
         sec += 1
     return video_name_no_extension

@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
+import utils
 
 indexArray_x = list()
 indexArray_y = list()
@@ -9,8 +10,8 @@ indexArray_y_black = list()
 
 
 def rgb2GrayScale(imageFile):
-    #img = Image.open(imageFile).convert("L")
-    img = Image.fromarray(imageFile)
+    img = Image.open(imageFile).convert("L")
+    # img = Image.fromarray(imageFile)
     arr = np.asarray(img)
     return arr
 
@@ -42,14 +43,15 @@ def plotPixels(indexArray_x_black, indexArray_y_black, indexArray_x, indexArray_
     plt.show()
 
 
-def main(res):
-    arr = rgb2GrayScale(res)
-    arr = arr[:, 50:][:, :-50]
-    indexArray_x, indexArray_y, indexArray_x_black, indexArray_y_black = getLightPixelsRatio(arr, 40)
-    # plotPixels(indexArray_x_black, indexArray_y_black, indexArray_x, indexArray_y, imageFile)
-    variance_x, variance_y = calculateSpread(indexArray_y_black, indexArray_x_black)
-    return variance_x, variance_x
-
-
-if __name__ == '__main__':
-    main()
+def main(images_folder):
+    variance_list = []
+    for image_name, image_path in utils.folder_reader(images_folder):
+        print(image_name)
+        arr = rgb2GrayScale(image_path + '/' + image_name)
+        arr = arr[:, 50:][:, :-50]
+        indexArray_x, indexArray_y, indexArray_x_black, indexArray_y_black = getLightPixelsRatio(arr, 40)
+        # plotPixels(indexArray_x_black, indexArray_y_black, indexArray_x, indexArray_y, imageFile)
+        variance_x, variance_y = calculateSpread(indexArray_y_black, indexArray_x_black)
+        variance = variance_x + variance_y
+        variance_list.append(variance)
+    return variance_list
