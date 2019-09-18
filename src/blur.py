@@ -1,26 +1,14 @@
 import os
-import re
+import common.natural_keys as natural_keys
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 
 
-def atoi(text):
-    return int(text) if text.isdigit() else text
-
-
-def natural_keys(text):
-    """
-    alist.sort(key=natural_keys) sorts in human order
-    http://nedbatchelder.com/blog/200712/human_sorting.html
-    """
-    return [atoi(c) for c in re.split(r'(\d+)', text)]
-
-
 def calculate_laplacian(video_name_no_extension, frames_folder):
     fm_list = []
     for root, dirs, files in os.walk(frames_folder + video_name_no_extension):
-        for image in sorted(files, key=natural_keys):
+        for image in sorted(files, key=natural_keys.natural_keys):
             with open(os.path.join(root, image), "r") as auto:
                 image_read = cv2.imread(root + '/' + image)
                 # For cropping

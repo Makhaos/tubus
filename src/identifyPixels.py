@@ -14,19 +14,14 @@ def rgb2GrayScale(imageFile):
     return arr
 
 
-def getLightPixelsRatio(arr):
-    totalNumberOfPixels = np.size(arr)
-    countLightPixels = 0
-    for n, i in enumerate(arr):  # numberOfRows
-        for n1, j in enumerate(i):  # numberOfCols
-            if j > 20:
-                countLightPixels += 1
-                indexArray_x.append([n])
-                indexArray_y.append([n1])
-            else:
-                indexArray_x_black.append([n])
-                indexArray_y_black.append([n1])
-    return countLightPixels / totalNumberOfPixels, indexArray_x, indexArray_y, indexArray_x_black, indexArray_y_black
+def getLightPixelsRatio(arr, pixelValue):
+    indiciesBright = np.where(arr >= pixelValue)
+    indexArray_x = indiciesBright[1]
+    indexArray_y = indiciesBright[0]
+    indiciesDark = np.where(arr < pixelValue)
+    indexArray_x_black = indiciesDark[1]
+    indexArray_y_black = indiciesDark[0]
+    return indexArray_x, indexArray_y, indexArray_x_black, indexArray_y_black
 
 
 def calculateSpread(indexArray_y_black, indexArray_x_black):
@@ -46,12 +41,14 @@ def plotPixels(indexArray_x_black, indexArray_y_black, indexArray_x, indexArray_
     plt.show()
 
 
-
-def main(imageFile):
+def main(res):
+    imageFile = Image.fromarray(res, 'HSV')
     arr = rgb2GrayScale(imageFile)
     arr = arr[:, 50:][:, :-50]
-    ratio, indexArray_x, indexArray_y, indexArray_x_black, indexArray_y_black = getLightPixelsRatio(arr)
-    plotPixels(indexArray_x_black, indexArray_y_black, indexArray_x, indexArray_y, imageFile)
+    indexArray_x, indexArray_y, indexArray_x_black, indexArray_y_black = getLightPixelsRatio(arr, 40)
+    # plotPixels(indexArray_x_black, indexArray_y_black, indexArray_x, indexArray_y, imageFile)
+    variance_x, variance_y = calculateSpread(indexArray_y_black, indexArray_x_black)
+    return variance_x, variance_x
 
 
 if __name__ == '__main__':
