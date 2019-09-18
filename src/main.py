@@ -5,8 +5,8 @@ from src import video_to_frames, blur, video_reader, identifyPixels, plot, color
 
 
 def main():
-    videos_folder = "/home/manuel/PycharmProjects/tubus_project/data/videos/0827/10"
-    frames_folder = "/home/manuel/PycharmProjects/tubus_project/data/frames"
+    videos_folder = "/home/staffanbjorkdahl/PycharmProjects/tubus/data/videos/0827/10"
+    frames_folder = "/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames"
     videos_list, videos_root_list = video_reader.videos_reader(videos_folder)
 
     # Loop through all videos
@@ -23,17 +23,15 @@ def main():
 
         # Loop through frames TODO only one loop for blurriness and variances
     variance_list = []
-    for root, dirs, files in os.walk(frames_folder + '/T20190823152643'):
+    for root, dirs, files in os.walk(frames_folder + '/T20190829092348'):
         for image in sorted(files, key=natural_keys.natural_keys):
+
             with open(os.path.join(root, image), "r") as auto:
                 res = color_detection.color_detection(root + '/' + image)
                 variance_x, variance_y = identifyPixels.main(res)
                 print('Frame:', image)
                 variance = variance_x + variance_y
                 variance_list.append(variance)
-    with open('data/files/T20190823152643.txt', 'w') as f:
-        for item in variance_list:
-            f.write("%s\n" % item)
     plot.plot_list(variance_list)
 
 

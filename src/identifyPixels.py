@@ -9,7 +9,8 @@ indexArray_y_black = list()
 
 
 def rgb2GrayScale(imageFile):
-    img = Image.open(imageFile).convert("L")
+    #img = Image.open(imageFile).convert("L")
+    img = Image.fromarray(imageFile)
     arr = np.asarray(img)
     return arr
 
@@ -42,8 +43,7 @@ def plotPixels(indexArray_x_black, indexArray_y_black, indexArray_x, indexArray_
 
 
 def main(res):
-    imageFile = Image.fromarray(res, 'HSV')
-    arr = rgb2GrayScale(imageFile)
+    arr = rgb2GrayScale(res)
     arr = arr[:, 50:][:, :-50]
     indexArray_x, indexArray_y, indexArray_x_black, indexArray_y_black = getLightPixelsRatio(arr, 40)
     # plotPixels(indexArray_x_black, indexArray_y_black, indexArray_x, indexArray_y, imageFile)
