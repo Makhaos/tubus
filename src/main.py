@@ -21,7 +21,6 @@ def main():
         print('bit_map_bool must be either 0 or 1')
         sys.exit()
 
-
     # Loop through all videos in folder
     for video_name, video_path in utils.folder_reader(videos_folder):
         video_name_no_extension, video_name_extension = os.path.splitext(video_name)
