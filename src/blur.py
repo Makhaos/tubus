@@ -1,5 +1,4 @@
 import os
-import natural_keys
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2

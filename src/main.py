@@ -13,7 +13,7 @@ def main():
 
     frames_folder = str(root) + '/data/frames'
 
-    bit_map_bool = 1  # bit_map_bool = 1 yields bitmap object. bit_map_bool = 0 yields image object
+    bit_map_bool = 0  # bit_map_bool = 1 yields bitmap object. bit_map_bool = 0 yields image object
 
     if bit_map_bool == 0 or bit_map_bool == 1:
         pass
