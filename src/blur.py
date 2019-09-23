@@ -12,7 +12,7 @@ def calculate_laplacian(video_name_no_extension, frames_folder):
             with open(os.path.join(root, image), "r") as auto:
                 image_read = cv2.imread(root + '/' + image)
                 # For cropping
-                # image_read = image_read[0:495, 0:800]
+                #image_read = image_read[0:495, 0:800]
                 # Optional Gaussian filter
                 # image_read = cv2.GaussianBlur(image_read, (3, 3), 0)
                 gray = cv2.cvtColor(image_read, cv2.COLOR_BGR2GRAY)

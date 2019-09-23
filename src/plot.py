@@ -4,7 +4,7 @@ import utils
 import os
 
 
-def plot_list(l, video_name, bit_map_bool):
+def plot_list(l, video_name):
     root = utils.get_project_root()
     plt.figure()
     y = l
@@ -16,7 +16,6 @@ def plot_list(l, video_name, bit_map_bool):
         plt.text(x, y, str(x), color="red", fontsize=6)
     plt.grid()
     os.makedirs(str(root) + '/data/files', exist_ok=True)
-    if bit_map_bool == 0:
-        plt.savefig(str(root) + '/data/files/' + video_name + '.png')
-    elif bit_map_bool == 1:
-        plt.savefig(str(root) + '/data/files/' + video_name + '_bit_map' + '.png')
+
+    plt.savefig(str(root) + '/data/files/' + video_name + '.png')
+
