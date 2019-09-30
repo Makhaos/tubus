@@ -7,9 +7,11 @@ from PIL import Image
 import os
 import time
 import sys
+import utils
 
 
 start_time = time.time()
+root = utils.get_project_root()
 
 
 def yellow_detection(input_image):
@@ -20,7 +22,7 @@ def yellow_detection(input_image):
     yellow = cv2.inRange(hsv, yellow_lower, yellow_upper)
     res = cv2.bitwise_and(src1=image_read, src2=image_read, mask=yellow)
     plt.imshow(res)
-    plt.savefig('/home/staffanbjorkdahl/PycharmProjects/tubus/data/tempPicture.jpg')
+    plt.savefig(str(root) + '/data/tempPicture.jpg')
 
 
 
@@ -42,7 +44,7 @@ def count_pixels_in_circle(pos_and_radius,black_x, black_y, pixel_value):
     return np.argmax(n_black_pixels_list)
 
 def create_grayscale_from_bitmap():
-    image_to_grayscale = cv2.imread('/home/staffanbjorkdahl/PycharmProjects/tubus/data/tempPicture.jpg')
+    image_to_grayscale = cv2.imread(str(root) + '/data/tempPicture.jpg')
     arr = rgb_2_gray_scale(image_to_grayscale)
     arr = arr[70:-70, 70:-70]
     return arr
@@ -52,14 +54,14 @@ def save_scatter_plot_and_get_pixels(arr,pixel_value):
     plt.close()
     plt.scatter(indexArray_x_black, indexArray_y_black ,c = 'black')
     plt.scatter(indexArray_x, indexArray_y, c = 'yellow')
-    plt.savefig('/home/staffanbjorkdahl/PycharmProjects/tubus/data/tempPicture2.jpg')
+    plt.savefig(str(root) + '/data/tempPicture2.jpg')
     black_x = indexArray_x_black
     black_y = indexArray_y_black
     return black_x, black_y
 
 
 def get_the_edges():
-    raw_image = cv2.imread('/home/staffanbjorkdahl/PycharmProjects/tubus/data/tempPicture2.jpg')
+    raw_image = cv2.imread(str(root) + '/data/tempPicture2.jpg')
     bilateral_filtered_image = cv2.bilateralFilter(raw_image, 5, 175, 175)
     #cv2.imshow('Bilateral', bilateral_filtered_image)
     #cv2.waitKey(0)
@@ -97,8 +99,8 @@ def flip_orig_image(input_image):
     orig_image_read = plt.imread(input_image)
     plt.close()
     plt.imshow(orig_image_read)
-    plt.savefig('/home/staffanbjorkdahl/PycharmProjects/tubus/data/tempPicture3.jpg')
-    orig_image = plt.imread('/home/staffanbjorkdahl/PycharmProjects/tubus/data/tempPicture3.jpg')
+    plt.savefig(str(root) + '/data/tempPicture3.jpg')
+    orig_image = plt.imread(str(root) + '/data/tempPicture3.jpg')
     plt.close()
     orig_flipped = np.flipud(orig_image)
     return orig_flipped
@@ -115,14 +117,15 @@ def plot_circles_on_orig(index_most_black_pixels,pos_and_radius,input_image):
     plt.axis('scaled')
     folder_name = input_image.split('/')[-2]
     image_name = input_image.split('/')[-1]
-    print('/home/staffanbjorkdahl/PycharmProjects/tubus/data/circle_folder/' + image_name)
-    plt.savefig('/home/staffanbjorkdahl/PycharmProjects/tubus/data/circle_folder/' + image_name)
+    os.makedirs(str(root) + '/data/circle_folder/', exist_ok=True)
+    print(str(root) + '/data/circle_folder/' + image_name)
+    plt.savefig(str(root) + '/data/circle_folder/' + image_name)
     plt.show()
 
 def remove_temp_jpgs():
-    os.remove('/home/staffanbjorkdahl/PycharmProjects/tubus/data/tempPicture.jpg')
-    os.remove('/home/staffanbjorkdahl/PycharmProjects/tubus/data/tempPicture2.jpg')
-    os.remove('/home/staffanbjorkdahl/PycharmProjects/tubus/data/tempPicture3.jpg')
+    os.remove(str(root) + '/data/tempPicture.jpg')
+    os.remove(str(root) + '/data/tempPicture2.jpg')
+    os.remove(str(root) + '/data/tempPicture3.jpg')
 
 
 #input_image = '/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames/T20190823155414/image53.jpg'
@@ -136,29 +139,26 @@ def remove_temp_jpgs():
 #input_image = '/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames/T20190823154915/image105.jpg' # No hole
 pixel_value = 20
 
-def main(path_to_framefolder, number_of_images_in_folder):
+def main(images_folder):
     #for i in range(103, number_of_images_in_folder+1):
     #input_image = path_to_framefolder+'/image'+str(i)+'.jpg'
-    input_image = '/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames/T20190829140453/image29.jpg'
-    input_image = '/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames/T20190823154915/image19.jpg'
-    input_image = '/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames/T20190829140453/image164.jpg'
-    input_image = '/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames/T20190823152643/image112.jpg'
-    input_image = '/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames/T20190829140453/image172.jpg'
-    input_image = '/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames/T20190829141432/image62.jpg'
-    yellow_detection(input_image)
-    arr = create_grayscale_from_bitmap()
-    black_x, black_y=save_scatter_plot_and_get_pixels(arr,pixel_value)
-    contours = get_the_edges()
-    updated_contour_list = put_contours_in_list(contours)
-    pos_and_radius = winnow_radii(updated_contour_list)
-    index_most_black_pixels = count_pixels_in_circle(pos_and_radius,black_x, black_y, pixel_value)
-    plot_circles_on_orig(index_most_black_pixels,pos_and_radius,input_image)
-    remove_temp_jpgs()
-    plt.close()
 
-path_to_framefolder = '/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames/T20190823154915'
+    for image_name, image_path in utils.folder_reader(images_folder):
+        input_image = str(root) + '/data/frames/T20190829141432/image62.jpg'
+        yellow_detection(input_image)
+        arr = create_grayscale_from_bitmap()
+        black_x, black_y=save_scatter_plot_and_get_pixels(arr,pixel_value)
+        contours = get_the_edges()
+        updated_contour_list = put_contours_in_list(contours)
+        pos_and_radius = winnow_radii(updated_contour_list)
+        index_most_black_pixels = count_pixels_in_circle(pos_and_radius,black_x, black_y, pixel_value)
+        plot_circles_on_orig(index_most_black_pixels,pos_and_radius,input_image)
+        remove_temp_jpgs()
+        plt.close()
+
+path_to_framefolder = str(root) + '/data/frames/res/T20190819122035'
 number_of_images_in_folder = 239
-main(path_to_framefolder,number_of_images_in_folder)
+main(path_to_framefolder, number_of_images_in_folder)
 
 end_time = time.time()-start_time
 

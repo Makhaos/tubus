@@ -6,7 +6,6 @@ import csv
 import math
 import sys
 
-
 indexArray_x = list()
 indexArray_y = list()
 indexArray_x_black = list()
@@ -50,13 +49,13 @@ def plot_pixels(indexArray_x_black, indexArray_y_black, indexArray_x, indexArray
     plt.text(-50, -100, imageFile.split('/')[-1], fontsize=8)
     plt.show()
 
-def write_plot_data_2_csv(variance, images_folder, index_of_variance_data):
 
+def write_plot_data_2_csv(variance, images_folder, index_of_variance_data):
     completeName = images_folder.split('/')[-1] + '.csv'
     if index_of_variance_data == 1:
         with open(completeName, 'w') as fout1:
             fout1.write('x,y \n')
-            fout1.write(str(-6)+',' + str(0) + '\n')
+            fout1.write(str(-6) + ',' + str(0) + '\n')
             fout1.write(str(-5) + ',' + str(0) + '\n')
             fout1.write(str(-4) + ',' + str(0) + '\n')
             fout1.write(str(-3) + ',' + str(0) + '\n')
@@ -68,10 +67,11 @@ def write_plot_data_2_csv(variance, images_folder, index_of_variance_data):
             print(index_of_variance_data)
     else:
         with open(completeName, 'a') as fout:
-            fout.write(str(index_of_variance_data)+','+str(variance)+'\n')
+            fout.write(str(index_of_variance_data) + ',' + str(variance) + '\n')
             print(index_of_variance_data)
 
-def main(images_folder, bit_map_list):
+
+def main(images_folder):
     variance_list = []
     index_of_variance_data = 0
     for image_name, image_path in utils.folder_reader(images_folder):
@@ -85,6 +85,5 @@ def main(images_folder, bit_map_list):
         variance = variance_x + variance_y
         write_plot_data_2_csv(variance, images_folder, index_of_variance_data)
         variance_list.append(variance)
-
 
     return variance_list
