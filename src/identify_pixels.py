@@ -19,7 +19,6 @@ def rgb_2_gray_scale(imageFile):
 
 
 def get_bright_and_dark_pixels(arr, pixelValue):
-    print(arr.shape)
     indiciesBright = np.where(arr >= pixelValue)
     indexArray_x = indiciesBright[1]
     indexArray_y = indiciesBright[0]
