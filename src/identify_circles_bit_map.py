@@ -8,6 +8,7 @@ import os
 import time
 import utils
 from src import color_detection
+import sys
 
 start_time = time.time()
 root = utils.get_project_root()
@@ -134,8 +135,13 @@ def plot_circles_on_orig(index_most_black_pixels, pos_and_radius, input_image):
         # plt.show()
         return pos_and_radius
     else:
-        orig = plt.imread(input_image)
+        #orig = plt.imread(input_image)
+
         plt.close()
+
+        #plt.imshow(orig)
+        orig_flipped = flip_orig_image(input_image)
+        plt.imshow(orig_flipped)
         plt.text(300, 50, "No circle found", size=20, rotation=20.,
                  ha="center", va="center",
                  bbox=dict(boxstyle="round",
@@ -143,9 +149,9 @@ def plot_circles_on_orig(index_most_black_pixels, pos_and_radius, input_image):
                            fc=(1., 0.8, 0.8),
                            )
                  )
-        plt.imshow(orig)
         image_name = input_image.split('/')[-1]
         plt.savefig(str(root) + '/data/circle_folder/' + image_name)
+        print('image shape', orig_flipped.shape)
         return 0
 
 
@@ -156,6 +162,22 @@ def remove_temp_jpgs():
     os.remove(str(root) + '/data/tempPicture2.jpg')
     os.remove(str(root) + '/data/tempPicture3.jpg')
 
+def get_distance_from_center_of_frame(position):
+    if position == 0:
+        return 350
+    else:
+        y_center_frame = 232
+        x_center_frame = 320
+        position = position[0][0:2]
+        print(position)
+        print(np.sqrt((y_center_frame-position[1])**2 + (x_center_frame-position[0])**2))
+        print((480 / 2 - 237)**2 + (640 / 2 - 277)**2)
+        print((np.sqrt(((480 / 2) - 277) ** 2 + ((640 / 2) - 237) ** 2)))
+
+
+        #sys.exit()
+
+        return np.sqrt((y_center_frame-position[1])**2 + (x_center_frame-position[0])**2)
 
 # input_image = '/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames/T20190823155414/image53.jpg'
 # input_image = '/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames/T20190829141432/image62.jpg'
@@ -181,23 +203,17 @@ def main(images_folder, images_folder_res):
         # arr = create_grayscale_from_bitmap()
         arr = create_grayscale_from_bitmap(image_path + '/' + image_name)
         # arr = arr[70:-70, 70:-70]  # TODO Cropping?
-        black_x, black_y = save_scatter_plot_and_get_pixels(arr, pixel_value, '/home/manuel/PycharmProjects/tubus_project/data/frames/res_for_circles/black_yellow', image_name) # TODO Dirty solution
-        contours = get_the_edges('/home/manuel/PycharmProjects/tubus_project/data/frames/res_for_circles/black_yellow/' + image_name)
+        black_x, black_y = save_scatter_plot_and_get_pixels(arr, pixel_value, str(root) + '/data/frames/res_for_circles/black_yellow', image_name) # TODO Dirty solution
+        contours = get_the_edges(str(root) + '/data/frames/res_for_circles/black_yellow/' + image_name)
         updated_contour_list = put_contours_in_list(contours)
         pos_and_radius = winnow_radii(updated_contour_list)
         index_most_black_pixels = count_pixels_in_circle(pos_and_radius, black_x, black_y)
         position = plot_circles_on_orig(index_most_black_pixels, pos_and_radius, images_folder + '/' + image_name)
+
+        distance_from_center = get_distance_from_center_of_frame(position)
         pos_and_radius_list.append(position)
         index_of_variance_data = index_of_variance_data + 1
-        identify_pixels.write_plot_data_2_csv(position, images_folder, index_of_variance_data)
-        # remove_temp_jpgs()
+        identify_pixels.write_plot_data_2_csv(distance_from_center, images_folder, index_of_variance_data)
         plt.close()
 
 
-# path_to_framefolder = str(root) + '/data/frames/res/T20190819122035'
-# number_of_images_in_folder = 239
-# main(path_to_framefolder)
-#
-# end_time = time.time() - start_time
-#
-# print(end_time)

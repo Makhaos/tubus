@@ -50,9 +50,9 @@ def plot_pixels(indexArray_x_black, indexArray_y_black, indexArray_x, indexArray
 
 
 def write_plot_data_2_csv(variance, images_folder, index_of_variance_data):
-    completeName = images_folder.split('/')[-1] + '.csv'
+    complete_name = images_folder.split('/')[-1] + '.csv'
     if index_of_variance_data == 1:
-        with open(completeName, 'w') as fout1:
+        with open(complete_name, 'w') as fout1:
             fout1.write('x,y \n')
             fout1.write(str(-6) + ',' + str(0) + '\n')
             fout1.write(str(-5) + ',' + str(0) + '\n')
@@ -61,11 +61,11 @@ def write_plot_data_2_csv(variance, images_folder, index_of_variance_data):
             fout1.write(str(-2) + ',' + str(0) + '\n')
             fout1.write(str(-1) + ',' + str(0) + '\n')
             fout1.write(str(0) + ',' + str(0) + '\n')
-        with open(completeName, 'a') as fout:
+        with open(complete_name, 'a') as fout:
             fout.write(str(index_of_variance_data) + ',' + str(variance) + '\n')
             print(index_of_variance_data)
     else:
-        with open(completeName, 'a') as fout:
+        with open(complete_name, 'a') as fout:
             fout.write(str(index_of_variance_data) + ',' + str(variance) + '\n')
             print(index_of_variance_data)
 

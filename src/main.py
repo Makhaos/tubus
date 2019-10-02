@@ -1,15 +1,17 @@
 import os
 import time
-import sys
+from matplotlib import pyplot as plt
 import utils
 from src import video_to_frames, blur, identify_pixels, plot, color_detection, identify_circles_bit_map
+
+
 
 
 def main():
     root = utils.get_project_root()
 
     # Edit according to the relevant video data
-    videos_folder = str(root) + '/data/videos/0819/12'
+    videos_folder = str(root) + '/data/videos'
 
     frames_folder = str(root) + '/data/frames'
 
@@ -42,7 +44,7 @@ def main():
         # # plot.plot_list(variance_list, video_name_no_extension)  # TODO improve quality of saved plots
         #
         # # Identify black holes (circles) in the pipes
-        hue_low = 15
+        hue_low = 13
         saturation_low = 25
         value_low = 0
         color_detection.yellow_detection(frames_folder + '/' + video_name_no_extension,
