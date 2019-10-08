@@ -1,8 +1,9 @@
 import cv2
 import numpy as np
-import utils
+import common.utils as utils
 import os
 
+# TODO change '/' paths to os.path.join for cross platform compatibility. Working example at video_to_frames
 
 class ColorDetector:
     def __init__(self, frames_folder, output_frames_folder):
