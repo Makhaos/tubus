@@ -14,11 +14,12 @@ class FramesCreator:
     def get_frame(self):
         for video_name, video_path in utils.folder_reader(self.videos_folder):
             video_name_no_extension, video_name_extension = os.path.splitext(video_name)
-            os.makedirs(os.path.join(self.frames_folder, video_name_no_extension), exist_ok=True)
             video = cv2.VideoCapture(os.path.join(video_path, video_name))
             frame_rate = float(video.get(cv2.CAP_PROP_FPS))
             number_of_frames = float(video.get(cv2.CAP_PROP_FRAME_COUNT))
             video_length = round(number_of_frames / frame_rate)
+            frames_raw = os.path.join(self.frames_folder, video_name_no_extension, 'raw')
+            os.makedirs(frames_raw, exist_ok=True)
             second = 0
             while second <= video_length - 1:  # Removing last frame
                 video.set(cv2.CAP_PROP_POS_FRAMES, frame_rate * second)
@@ -26,15 +27,17 @@ class FramesCreator:
                 if self.crop:
                     image = image[30:495, 30:670]
                 if not cv2.imwrite(
-                        os.path.join(self.frames_folder, video_name_no_extension, 'image' + str(second) + '.jpg'),
+                        os.path.join(frames_raw, 'image' + str(second) + '.jpg'),
                         image):
-                    raise Exception('Could not write images')
+                    raise Exception('Could not write frames')
                 second += 1
+            else:
+                print('Frames from the video', video_name_no_extension, 'created at', frames_raw)
 
 
 def main():
     root = utils.get_project_root()
-    videos_folder = os.path.join(str(root), 'data', 'videos')
+    videos_folder = os.path.join(str(root), 'data', 'videos', 'chosen_videos', 'for_testing')
     frames_folder = os.path.join(str(root), 'data', 'frames')
     frames_creator = FramesCreator(videos_folder, frames_folder, crop=True)
     frames_creator.get_frame()
