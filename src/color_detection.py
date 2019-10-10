@@ -23,8 +23,8 @@ class ColorDetector:
 
 def main():
     root = utils.get_project_root()
-    frames_raw = os.path.join(str(root), 'data', 'frames', 'T20190823152643', 'raw')
-    frames_res = os.path.join(str(root), 'data', 'frames', 'T20190823152643', 'res')
+    frames_raw = os.path.join(str(root), 'data', 'frames', 'a_video_for_test', 'raw')
+    frames_res = os.path.join(str(root), 'data', 'frames', 'a_video_for_test', 'res')
     color_detector = ColorDetector(frames_raw, frames_res)
     # HSV values
     yellow_low = [18, 25, 25]
