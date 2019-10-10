@@ -47,7 +47,7 @@ def main():
         hue_low = 13
         saturation_low = 25
         value_low = 0
-        color_detection.yellow_detection(frames_folder + '/' + video_name_no_extension,
+        color_detection.detect_yellow(frames_folder + '/' + video_name_no_extension,
                                          frames_folder + '/res_for_circles/' + video_name_no_extension, hue_low,
                                          saturation_low, value_low)
 
