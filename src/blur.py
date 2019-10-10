@@ -1,55 +1,61 @@
-import os
-import natural_keys
-import matplotlib.pyplot as plt
-import numpy as np
 import cv2
+import os
+import common.utils as utils
+import common.plot as plot
 
 
-# TODO updates needed
-def calculate_laplacian(video_name_no_extension, frames_folder):
-    fm_list = []
-    for root, dirs, files in os.walk(frames_folder + video_name_no_extension):
-        for image in sorted(files, key=natural_keys.natural_keys):
-            with open(os.path.join(root, image), "r") as auto:
-                image_read = cv2.imread(root + '/' + image)
-                # For cropping
-                # image_read = image_read[0:495, 0:800]
-                # Optional Gaussian filter
-                # image_read = cv2.GaussianBlur(image_read, (3, 3), 0)
-                gray = cv2.cvtColor(image_read, cv2.COLOR_BGR2GRAY)
-                fm = cv2.Laplacian(gray, cv2.CV_64F).var()
-                fm_list.append(fm)
-                cv2.putText(image_read, "Blurry level: {:.2f}".format(fm), (10, 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 3)
-                cv2.imwrite(root + '/' + image,
-                            image_read)  # save frame as JPG file
-                return fm_list
+class BlurDetector:
+    def __init__(self, frames_raw, frames_blur):
+        self.frames_raw = frames_raw
+        self.frames_blur = frames_blur
+        self.fm_list = []
+
+    def calculate_laplacian(self):
+        for image_name, image_path in utils.folder_reader(self.frames_raw):
+            image_read = cv2.imread(os.path.join(image_path, image_name))
+            gray = cv2.cvtColor(image_read, cv2.COLOR_BGR2GRAY)
+            fm = cv2.Laplacian(gray, cv2.CV_64F).var()
+            self.fm_list.append(fm)
+            os.makedirs(self.frames_blur, exist_ok=True)
+            cv2.putText(image_read, "Blurry level: {:.2f}".format(fm),
+                        (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 3)
+            cv2.imwrite(os.path.join(self.frames_blur, image_name), image_read)
+        with open(os.path.join(self.frames_blur, 'laplacian_values.txt'), 'w') as writer:
+            writer.write(str(self.fm_list))
+
+    def blur_results(self):
+        root = utils.get_project_root()
+        video_name = os.path.basename(os.path.dirname(self.frames_raw))
+        os.makedirs(os.path.join(str(root), 'data', 'files', video_name), exist_ok=True)
+        with open(os.path.join(str(root), 'data', 'files', video_name, 'blur_results.txt'), 'w') as writer:
+            blurry_list = []
+            writer.write(video_name + '\n')
+            try:
+                average = round(sum(self.fm_list) / len(self.fm_list), 2)
+                writer.write(' ' * 5 + ' Average of blurriness: ' + str(average) + '\n')
+                for l in self.fm_list:
+                    if l < 110:
+                        blurry_list.append(self.fm_list.index(l))
+                writer.write(' ' * 5 + ' List of blurry images ' + str(blurry_list) + '\n')
+                writer.write(' ' * 5 + ' Amount of blurry images ' + str(len(blurry_list)) + ' | ' + ' in ' + str(
+                    len(self.fm_list)) + ' total amount of images ' + '\n')
+                writer.write(' ' * 5 + ' Percentage of blurry images ' + str(
+                    round(len(blurry_list) / len(self.fm_list), 2) * 100) + ' % ' + '\n')
+                plot.plot_list(self.fm_list, video_name, 'blur_plot')
+            except ZeroDivisionError as error:
+                print(error, 'in method blur_results:\n',
+                      'To get results, the Laplacian needs to be calculated before. '
+                      'Use the calculate_laplacian method')
 
 
-def print_blur_results(fm_list, video_name_no_extension):
-    blurry_list = []
-    print("Video name:", video_name_no_extension)
-    average = round(sum(fm_list) / len(fm_list), 2)
-    print(' ' * 5, "Average of blurriness:", average)
-    for l in fm_list:
-        if l < 110:
-            blurry_list.append(fm_list.index(l))
-    print(' ' * 5, "List of blurry images", blurry_list)
-    print(' ' * 5, "Amount of blurry images", len(blurry_list), "|", "in", len(fm_list), "total amount of images")
-    print(' ' * 5, "Percentage of blurry images", round(len(blurry_list) / len(fm_list), 2) * 100, '%')
-
-    return average
+def main():
+    root = utils.get_project_root()
+    frames_raw = os.path.join(str(root), 'data', 'frames', 'a_video_for_test', 'raw')
+    frames_blur = os.path.join(str(root), 'data', 'frames', 'a_video_for_test', 'blur')
+    blur_detector = BlurDetector(frames_raw, frames_blur)
+    blur_detector.calculate_laplacian()
+    blur_detector.blur_results()
 
 
-def plot_video_blurriness_level(fm_list):
-    plt.figure()
-    y = fm_list
-    x = np.arange(0, 180, 1)
-    plt.xticks(np.arange(0, 180, step=2))
-
-    plt.plot(x, y, color='green', linestyle='dashed', linewidth=3,
-             marker='o', markerfacecolor='blue', markersize=8)
-    for x, y in zip(x, y):
-        plt.text(x, y, str(x), color="red", fontsize=6)
-    plt.grid()
-    plt.pause(0.0001)
+if __name__ == '__main__':
+    main()

@@ -1,41 +1,31 @@
 import os
 import time
-import sys
-import utils
-from src import video_to_frames, blur, identifyPixels, plot, color_detection
+import common.utils as utils
+from src import video_to_frames, blur, color_detection
 
 
 def main():
     root = utils.get_project_root()
-
-    # Edit according to the relevant video data
-    videos_folder = str(root) + '/data/videos/chosen_videos'
-
-    frames_folder = str(root) + '/data/frames'
+    videos_folder = os.path.join(str(root), 'data', 'videos', 'chosen_videos', 'for_testing')
+    frames_folder = os.path.join(str(root), 'data', 'frames')
+    frames_creator = video_to_frames.FramesCreator(videos_folder, frames_folder, crop=True)
+    frames_creator.get_frame()
 
     # Loop through all videos in folder
     for video_name, video_path in utils.folder_reader(videos_folder):
         video_name_no_extension, video_name_extension = os.path.splitext(video_name)
+        frames_raw = os.path.join(str(root), 'data', 'frames', video_name_no_extension, 'raw')
+        frames_res = os.path.join(str(root), 'data', 'frames', video_name_no_extension, 'res')
+        color_detector = color_detection.ColorDetector(frames_raw, frames_res)
+        # HSV values
+        yellow_low = [18, 25, 25]
+        yellow_high = [30, 255, 255]
+        color_detector.detect_yellow(yellow_low, yellow_high)
 
-        # Create frames from a video
-        os.makedirs(frames_folder + '/' + video_name_no_extension, exist_ok=True)
-        video_to_frames.get_frame(video_path, video_name, frames_folder, video_name_no_extension)
-
-        # TODO improve blurriness algorithm and code
-        # # Calculate blurriness of each image
-        # fm_list = blur.calculate_laplacian(video_name_no_extension, frames_folder)
-        # # Print blurriness results
-        # blur.print_blur_results(fm_list, video_name_no_extension)
-
-        # Detect yellow in frames
-        color_detection.yellow_detection(frames_folder + '/' + video_name_no_extension,
-                                         str(root) + '/data/frames/res/' + video_name_no_extension)
-
-        # Calculate variance
-        variance_list = identifyPixels.main(str(root) + '/data/frames/res/' + video_name_no_extension)
-
-        # Plot variance results
-        plot.plot_list(variance_list, video_name_no_extension) # TODO improve quality of saved plots
+        frames_blur = os.path.join(str(root), 'data', 'frames', video_name_no_extension, 'blur')
+        blur_detector = blur.BlurDetector(frames_raw, frames_blur)
+        blur_detector.calculate_laplacian()
+        blur_detector.blur_results()
 
 
 if __name__ == "__main__":
