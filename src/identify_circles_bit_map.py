@@ -8,6 +8,7 @@ import time
 import common.utils as utils
 import src.color_detection as cd
 
+
 start_time = time.time()
 root = utils.get_project_root()
 pos_and_radius_list = list()
@@ -17,7 +18,7 @@ class Images:
     def __init__(self, image_folder_name, res_image_folder_name):
         self.image_folder_name = image_folder_name
         self.res_image_folder_name = res_image_folder_name
-    pixel_value = 0
+    pixel_value = 20
 
 
 class ScatterImages(Images):
@@ -34,7 +35,6 @@ class ScatterImages(Images):
         index_array_y_black = indices_dark[0]
         return index_array_x, index_array_y, index_array_x_black, index_array_y_black
 
-
     def get_res(self, yellow_low, yellow_high):
         cd.ColorDetector(self.image_folder_name, self.res_image_folder_name).detect_yellow(yellow_low, yellow_high)
 
@@ -49,6 +49,7 @@ class ScatterImages(Images):
             grayscale_image_array = np.asarray(img)
             index_array_x_yellow, index_array_y_yellow, black_x_position, black_y_position = \
                 ScatterImages.get_bright_and_dark_pixels(grayscale_image_array, Images.pixel_value)
+            plt.imshow(image_read)
             plt.scatter(black_x_position, black_y_position, c='black')
             plt.savefig(os.path.join(scatter_image_folder_name, image_name))
             plt.close()
@@ -137,20 +138,18 @@ class CirclePosition(Images):
             image_read = plt.imread(os.path.join(image_path, image_name))
             for item in CirclePosition.features_selected_circle:
                 if item[0] == image_count:
-                    if item[1] != False:
+                    if item[1]:
                         number_of_points = np.linspace(0, 2 * np.pi, 200)
                         xunit = item[3] * np.cos(number_of_points) + item[1]
                         yunit = item[3] * np.sin(number_of_points) + item[2]
                     else:
                         found_circle = False
-            if found_circle == False:
-                raw_flipped = np.flipud(image_read)
-                plt.imshow(raw_flipped)
-                plt.text(350, 350, 'No Circle Found')
+            if not found_circle:
+                plt.imshow(image_read)
+                plt.text(50, 50, 'No Circle Found')
                 plt.savefig(os.path.join(circle_image_folder_name, image_name))
             else:
-                raw_flipped = np.flipud(image_read)
-                plt.imshow(raw_flipped)
+                plt.imshow(image_read)
                 plt.plot(xunit, yunit)
                 plt.savefig(os.path.join(circle_image_folder_name, image_name))
             plt.close()
@@ -158,10 +157,11 @@ class CirclePosition(Images):
 
 
 def main():
+    video_name = 'T20190823155414'
     yellow_low = [14, 25, 25]
     yellow_high = [30, 255, 255]
-    image_folder_name = '/home/staffanbjorkdahl/PycharmProjects/tubus/data/frames/tempfile'
-    res_image_folder_name = os.path.join(str(root), 'data', 'frames', 'T20190823155414', 'res')
+    image_folder_name = os.path.join(str(root), 'data', video_name, 'raw')
+    res_image_folder_name = os.path.join(str(root), 'data', video_name, 'res')
     scatter_images = ScatterImages(image_folder_name, res_image_folder_name)
     scatter_images.get_res(yellow_low, yellow_high)
     scatter_images.get_scatter_plot()
