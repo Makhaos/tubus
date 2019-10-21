@@ -1,88 +1,82 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from PIL import Image
-import utils
-import csv
 import math
+import os
+import common.utils as utils
 import sys
-
-indexArray_x = list()
-indexArray_y = list()
-indexArray_x_black = list()
-indexArray_y_black = list()
+import warnings
+root = utils.get_project_root()
 
 
-def rgb_2_gray_scale(imageFile):
-    img = Image.open(imageFile).convert("L")
-    arr = np.asarray(img)
-    return arr
+class Variance:
+    def __init__(self, image):
+        self.image = image
+        self.video_directory = os.path.split(os.path.split(image)[0])[0]
+    pixel_value = 20
+    variance = 0
+
+    if not sys.warnoptions:
+        warnings.simplefilter("ignore")
+
+    def create_rgb_from_grayscale(self):
+        grayscale_image = Image.open(self.image).convert("L")
+        grayscale_array = np.asarray(grayscale_image)
+        self.grayscale_array = grayscale_array[:, 50:][:, :-50]
+
+    def get_bright_and_dark_pixels(self):
+        indices_dark = np.where(self.grayscale_array < Variance.pixel_value)
+        self.index_array_x_black = indices_dark[1]
+        self.index_array_y_black = indices_dark[0]
+
+    def calculate_variance(self):
+        variance_y = np.var(self.index_array_x_black)
+        variance_x = np.var(self.index_array_y_black)
+        if math.isnan(variance_y):
+            variance_y = 0
+        if math.isnan(variance_x):
+            variance_x = 0
+        Variance.variance = int(np.round(variance_x)) + int(np.round(variance_y))
 
 
-def get_bright_and_dark_pixels(arr, pixelValue):
-    indiciesBright = np.where(arr >= pixelValue)
-    indexArray_x = indiciesBright[1]
-    indexArray_y = indiciesBright[0]
-    indiciesDark = np.where(arr < pixelValue)
-    indexArray_x_black = indiciesDark[1]
-    indexArray_y_black = indiciesDark[0]
-    return indexArray_x, indexArray_y, indexArray_x_black, indexArray_y_black
+class WritingCSV(Variance):
+
+    def write_plot_data_2_csv(self, index_of_variance):
+        complete_name = os.path.join(self.video_directory, 'variance.csv')
+        if index_of_variance == 1:
+            with open(complete_name, 'w') as fout1:
+                fout1.write('x,y \n')
+                fout1.write(str(-6) + ',' + str(0) + '\n')
+                fout1.write(str(-5) + ',' + str(0) + '\n')
+                fout1.write(str(-4) + ',' + str(0) + '\n')
+                fout1.write(str(-3) + ',' + str(0) + '\n')
+                fout1.write(str(-2) + ',' + str(0) + '\n')
+                fout1.write(str(-1) + ',' + str(0) + '\n')
+                fout1.write(str(0) + ',' + str(0) + '\n')
+            with open(complete_name, 'a') as fout:
+                fout.write(str(index_of_variance) + ',' + str(Variance.variance) + '\n')
+
+        else:
+            with open(complete_name, 'a') as fout:
+                fout.write(str(index_of_variance) + ',' + str(Variance.variance) + '\n')
 
 
-def calculate_spread(indexArray_y_black, indexArray_x_black):
-    variance_y = np.var(indexArray_x_black)
-    variance_x = np.var(indexArray_y_black)
-    if math.isnan(variance_y):
-        variance_y = 0
-    if math.isnan(variance_x):
-        variance_x = 0
-    print('varX: ' + str(int(np.round(variance_y))) + ', varY: ' + str(int(np.round(variance_x))))
-    return int(np.round(variance_x)), int(np.round(variance_y))
+def main():
+    video_name = 'T20190823155414'
+    raw_image_folder_name = os.path.join(str(root), 'data', video_name, 'raw')
+    variance_index = 0
+    for image_name, image_directory in utils.folder_reader(raw_image_folder_name):
+        variance_index += 1
+        image_name_path = os.path.join(image_directory, image_name)
+        variance_image = Variance(image_name_path)
+        variance_image.create_rgb_from_grayscale()
+        variance_image.get_bright_and_dark_pixels()
+        variance_image.calculate_variance()
+        csv = WritingCSV(image_name_path)
+        csv.write_plot_data_2_csv(variance_index)
 
 
-def plot_pixels(indexArray_x_black, indexArray_y_black, indexArray_x, indexArray_y, imageFile):
-    plt.scatter(indexArray_y, indexArray_x, c='yellow', s=0.1)
-    plt.scatter(indexArray_y_black, indexArray_x_black, c='black', s=0.1)
-    variance_x, variance_y = calculate_spread(indexArray_y_black, indexArray_x_black)
-    string = 'varX: ' + str(variance_y) + ' ' + 'varY: ' + str(variance_x)
-    plt.text(-50, 700, string, fontsize=8)
-    plt.text(-50, -100, imageFile.split('/')[-1], fontsize=8)
-    plt.show()
+if __name__ == "__main__":
+    main()
 
 
-def write_plot_data_2_csv(variance, images_folder, index_of_variance_data):
-    complete_name = images_folder.split('/')[-1] + '.csv'
-    if index_of_variance_data == 1:
-        with open(complete_name, 'w') as fout1:
-            fout1.write('x,y \n')
-            fout1.write(str(-6) + ',' + str(0) + '\n')
-            fout1.write(str(-5) + ',' + str(0) + '\n')
-            fout1.write(str(-4) + ',' + str(0) + '\n')
-            fout1.write(str(-3) + ',' + str(0) + '\n')
-            fout1.write(str(-2) + ',' + str(0) + '\n')
-            fout1.write(str(-1) + ',' + str(0) + '\n')
-            fout1.write(str(0) + ',' + str(0) + '\n')
-        with open(complete_name, 'a') as fout:
-            fout.write(str(index_of_variance_data) + ',' + str(variance) + '\n')
-            print(index_of_variance_data)
-    else:
-        with open(complete_name, 'a') as fout:
-            fout.write(str(index_of_variance_data) + ',' + str(variance) + '\n')
-            print(index_of_variance_data)
 
-
-def main(images_folder):
-    variance_list = []
-    index_of_variance_data = 0
-    for image_name, image_path in utils.folder_reader(images_folder):
-        print(image_name)
-        index_of_variance_data = index_of_variance_data + 1
-        arr = rgb_2_gray_scale(image_path + '/' + image_name)
-        arr = arr[:, 50:][:, :-50]
-        indexArray_x, indexArray_y, indexArray_x_black, indexArray_y_black = get_bright_and_dark_pixels(arr, 40)
-        # plot_pixels(indexArray_x_black, indexArray_y_black, indexArray_x, indexArray_y, imageFile)
-        variance_x, variance_y = calculate_spread(indexArray_y_black, indexArray_x_black)
-        variance = variance_x + variance_y
-        write_plot_data_2_csv(variance, images_folder, index_of_variance_data)
-        variance_list.append(variance)
-
-    return variance_list
