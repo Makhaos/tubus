@@ -15,9 +15,11 @@ pos_and_radius_list = list()
 
 
 class Images:
-    def __init__(self, image_folder_name, res_image_folder_name):
-        self.image_folder_name = image_folder_name
-        self.res_image_folder_name = res_image_folder_name
+    def __init__(self, video_name):
+        self.res_image_folder_name = os.path.join(str(root), 'data', video_name, 'res')
+        self.image_folder_name = os.path.join(str(root), 'data', video_name, 'raw')
+        self.scatter_image_folder_name = os.path.join(str(root), 'data', video_name, 'scatter')
+        self.circle_image_folder_name = os.path.join(str(root), 'data', video_name, 'circles')
     pixel_value = 20
 
 
@@ -39,9 +41,8 @@ class ScatterImages(Images):
         cd.ColorDetector(self.image_folder_name, self.res_image_folder_name).detect_yellow(yellow_low, yellow_high)
 
     def get_scatter_plot(self):
-        scatter_image_folder_name = os.path.join(self.res_image_folder_name + 'scatter')
-        ScatterImages.scatter_image_folder_name = scatter_image_folder_name
-        os.makedirs(scatter_image_folder_name, exist_ok=True)
+
+        os.makedirs(self.scatter_image_folder_name, exist_ok=True)
         image_number = 0
         for image_name, image_path in utils.folder_reader(self.res_image_folder_name):
             image_read = cv2.imread(os.path.join(image_path, image_name))
@@ -51,7 +52,7 @@ class ScatterImages(Images):
                 ScatterImages.get_bright_and_dark_pixels(grayscale_image_array, Images.pixel_value)
             plt.imshow(image_read)
             plt.scatter(black_x_position, black_y_position, c='black')
-            plt.savefig(os.path.join(scatter_image_folder_name, image_name))
+            plt.savefig(os.path.join(self.scatter_image_folder_name, image_name))
             plt.close()
             ScatterImages.black_pixels_position.append([image_number, black_x_position, black_y_position])
             print('Image number: ', image_number)
@@ -65,7 +66,8 @@ class EdgeDetection(Images):
 
     def get_edges(self):
         contour_list = list()
-        scatter_image_folder_name = ScatterImages.scatter_image_folder_name
+        scatter_image_folder_name = self.scatter_image_folder_name
+        os.makedirs(scatter_image_folder_name, exist_ok=True)
         for image_name, image_path in utils.folder_reader(scatter_image_folder_name):
             raw_image = cv2.imread(os.path.join(image_path, image_name))
             bilateral_filtered_image = cv2.bilateralFilter(raw_image, 5, 175, 175)
@@ -129,9 +131,8 @@ class CirclePosition(Images):
     def plot_circles_on_raw_image(self):
         xunit = list()
         yunit = list()
-        circle_image_folder_name = os.path.join(self.res_image_folder_name + 'circle')
         found_circle = True
-        os.makedirs(circle_image_folder_name, exist_ok=True)
+        os.makedirs(self.circle_image_folder_name, exist_ok=True)
         image_count = -1
         for image_name, image_path in utils.folder_reader(self.image_folder_name):
             image_count += 1
@@ -144,14 +145,15 @@ class CirclePosition(Images):
                         yunit = item[3] * np.sin(number_of_points) + item[2]
                     else:
                         found_circle = False
+            print(xunit,yunit)
             if not found_circle:
                 plt.imshow(image_read)
                 plt.text(50, 50, 'No Circle Found')
-                plt.savefig(os.path.join(circle_image_folder_name, image_name))
+                plt.savefig(os.path.join(self.circle_image_folder_name, image_name))
             else:
                 plt.imshow(image_read)
                 plt.plot(xunit, yunit)
-                plt.savefig(os.path.join(circle_image_folder_name, image_name))
+                plt.savefig(os.path.join(self.circle_image_folder_name, image_name))
             plt.close()
             found_circle = True
 
@@ -160,14 +162,12 @@ def main():
     video_name = 'T20190823155414'
     yellow_low = [14, 25, 25]
     yellow_high = [30, 255, 255]
-    image_folder_name = os.path.join(str(root), 'data', video_name, 'raw')
-    res_image_folder_name = os.path.join(str(root), 'data', video_name, 'res')
-    scatter_images = ScatterImages(image_folder_name, res_image_folder_name)
+    scatter_images = ScatterImages(video_name)
     scatter_images.get_res(yellow_low, yellow_high)
     scatter_images.get_scatter_plot()
-    edge_detection = EdgeDetection(image_folder_name, res_image_folder_name)
+    edge_detection = EdgeDetection(video_name)
     edge_detection.get_edges()
-    circle_pos = CirclePosition(image_folder_name, res_image_folder_name)
+    circle_pos = CirclePosition(video_name)
     circle_pos.get_valid_radii()
     circle_pos.count_pixels_in_circle()
     circle_pos.plot_circles_on_raw_image()
