@@ -61,6 +61,7 @@ class WritingCSV(Variance):
 
 
 def main():
+
     video_name = 'T20190823155414'
     raw_image_folder_name = os.path.join(str(root), 'data', video_name, 'raw')
     variance_index = 0

@@ -7,6 +7,7 @@ import os
 import time
 import common.utils as utils
 import src.color_detection as cd
+import sys
 
 
 start_time = time.time()
@@ -16,10 +17,10 @@ pos_and_radius_list = list()
 
 class Images:
     def __init__(self, video_name):
-        self.res_image_folder_name = os.path.join(str(root), 'data', video_name, 'res')
-        self.image_folder_name = os.path.join(str(root), 'data', video_name, 'raw')
-        self.scatter_image_folder_name = os.path.join(str(root), 'data', video_name, 'scatter')
-        self.circle_image_folder_name = os.path.join(str(root), 'data', video_name, 'circles')
+        self.res_image_folder_name = os.path.join(str(root), 'data','frames', video_name, 'res')
+        self.image_folder_name = os.path.join(str(root), 'data', 'frames',video_name, 'raw')
+        self.scatter_image_folder_name = os.path.join(str(root), 'data', 'frames', video_name, 'scatter')
+        self.circle_image_folder_name = os.path.join(str(root), 'data', 'frames', video_name, 'circles')
     pixel_value = 20
 
 
@@ -38,7 +39,10 @@ class ScatterImages(Images):
         return index_array_x, index_array_y, index_array_x_black, index_array_y_black
 
     def get_res(self, yellow_low, yellow_high):
-        cd.ColorDetector(self.image_folder_name, self.res_image_folder_name).detect_yellow(yellow_low, yellow_high)
+        yellow_low_str = '_'.join([str(i) for i in yellow_low])
+        yellow_high_str = '_'.join([str(i) for i in yellow_high])
+        res_folder_name = os.path.join(self.res_image_folder_name+yellow_low_str+'__' +yellow_high_str)
+        cd.ColorDetector(self.image_folder_name, res_folder_name).detect_yellow(yellow_low, yellow_high)
 
     def get_scatter_plot(self):
 
