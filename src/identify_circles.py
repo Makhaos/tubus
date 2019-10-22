@@ -4,15 +4,9 @@ from matplotlib import pyplot as plt
 import numpy as np
 from PIL import Image
 import os
-import time
 import common.utils as utils
 import src.color_detection as cd
-import sys
-
-
-start_time = time.time()
 root = utils.get_project_root()
-pos_and_radius_list = list()
 
 
 class Images:
@@ -29,7 +23,7 @@ class ScatterImages(Images):
     black_pixels_position = list()
 
     @staticmethod
-    def get_bright_and_dark_pixels(grayscale_image_array, pixel_value):
+    def get_bright_and_dark_pixels(grayscale_image_array, pixel_value):  # Returns the bright and the dark pixels
         indices_bright = np.where(grayscale_image_array >= pixel_value)
         index_array_x = indices_bright[1]
         index_array_y = indices_bright[0]
@@ -38,14 +32,13 @@ class ScatterImages(Images):
         index_array_y_black = indices_dark[0]
         return index_array_x, index_array_y, index_array_x_black, index_array_y_black
 
-    def get_res(self, yellow_low, yellow_high):
+    def get_res(self, yellow_low, yellow_high):  # Creates images with bitmap and writes them to res folder
         yellow_low_str = '_'.join([str(i) for i in yellow_low])
         yellow_high_str = '_'.join([str(i) for i in yellow_high])
-        res_folder_name = os.path.join(self.res_image_folder_name+yellow_low_str+'__' +yellow_high_str)
+        res_folder_name = os.path.join(self.res_image_folder_name+yellow_low_str+'__' + yellow_high_str)
         cd.ColorDetector(self.image_folder_name, res_folder_name).detect_yellow(yellow_low, yellow_high)
 
-    def get_scatter_plot(self):
-
+    def get_scatter_plot(self):  # Plots scatter plots and writes them to scatter folder
         os.makedirs(self.scatter_image_folder_name, exist_ok=True)
         image_number = 0
         for image_name, image_path in utils.folder_reader(self.res_image_folder_name):
@@ -67,11 +60,13 @@ class EdgeDetection(Images):
     list_of_contour_lists = list()
     contours = list()
     total_contour_list = list()
+    updated_contour_list = list()
 
-    def get_edges(self):
+    def get_edges(self): # Identifies the edges in the image
         contour_list = list()
         scatter_image_folder_name = self.scatter_image_folder_name
         os.makedirs(scatter_image_folder_name, exist_ok=True)
+        EdgeDetection.total_contour_list = list()
         for image_name, image_path in utils.folder_reader(scatter_image_folder_name):
             raw_image = cv2.imread(os.path.join(image_path, image_name))
             bilateral_filtered_image = cv2.bilateralFilter(raw_image, 5, 175, 175)
@@ -95,7 +90,7 @@ class CirclePosition(Images):
     circle_features = list()
     image_number_and_argmax = list()
 
-    def get_valid_radii(self):
+    def get_valid_radii(self):  # Creates circles from contours and accepts a certain interval for circles radius
         cont = EdgeDetection.total_contour_list
         valid_circles_list_total = list()
         valid_circles_list = list()
@@ -109,7 +104,7 @@ class CirclePosition(Images):
             valid_circles_list = list()
             CirclePosition.circle_features = valid_circles_list_total
 
-    def count_pixels_in_circle(self):
+    def count_pixels_in_circle(self):  # Counts the black pixels within each valid circle
         n_black_pixels_list = list()
         index_for_most_black_pixel = list()
         for item in CirclePosition.circle_features:
@@ -125,14 +120,16 @@ class CirclePosition(Images):
                     index_for_most_black_pixel = [image_number, np.argmax(n_black_pixels_list)]
             n_black_pixels_list = list()
             CirclePosition.image_number_and_argmax.append(index_for_most_black_pixel)
-        for image_number_and_idx, features in zip(CirclePosition.image_number_and_argmax,
-                                                  CirclePosition.circle_features):
+        for image_number_and_idx, features in zip(CirclePosition.image_number_and_argmax[1:],
+                                                  CirclePosition.circle_features[1:]):
             if not features:
                 CirclePosition.features_selected_circle.append([image_number_and_idx[0], False])
             else:
                 CirclePosition.features_selected_circle.append(features[image_number_and_idx[1]])
+        CirclePosition.image_number_and_argmax = list()
+        CirclePosition.circle_features = list()
 
-    def plot_circles_on_raw_image(self):
+    def plot_circles_on_raw_image(self):  # Plots the circle on the raw image
         xunit = list()
         yunit = list()
         found_circle = True
@@ -159,6 +156,7 @@ class CirclePosition(Images):
                 plt.savefig(os.path.join(self.circle_image_folder_name, image_name))
             plt.close()
             found_circle = True
+
 
 
 def main():

@@ -2,7 +2,7 @@ import os
 import time
 import common.utils as utils
 from src import video_to_frames, blur, color_detection, identify_pixels, identify_circles
-import sys
+
 
 
 def main():
@@ -23,7 +23,6 @@ def main():
         yellow_low = [18, 25, 25]
         yellow_high = [30, 255, 255]
         color_detector.detect_yellow(yellow_low, yellow_high)
-
         frames_blur = os.path.join(str(root), 'data', 'frames', video_name_no_extension, 'blur')
         blur_detector = blur.BlurDetector(frames_raw, frames_blur)
         blur_detector.calculate_laplacian()
@@ -34,7 +33,7 @@ def main():
             variance_index += 1
             image_name_path = os.path.join(image_directory, image_name)
             variance_image = identify_pixels.Variance(image_name_path)
-            variance_image.create_rgb_from_grayscale()
+            variance_image.create_grayscale_from_rgb()
             variance_image.get_bright_and_dark_pixels()
             variance_image.calculate_variance()
             csv = identify_pixels.WritingCSV(image_name_path)
@@ -51,7 +50,7 @@ def main():
         circle_pos.get_valid_radii()
         circle_pos.count_pixels_in_circle()
         circle_pos.plot_circles_on_raw_image()
-        sys.exit()
+        identify_circles.CirclePosition.features_selected_circle = list()
 
 
 if __name__ == "__main__":

@@ -15,20 +15,20 @@ class Variance:
     pixel_value = 20
     variance = 0
 
-    if not sys.warnoptions:
+    if not sys.warnoptions:  # Ignore runtime warning
         warnings.simplefilter("ignore")
 
-    def create_rgb_from_grayscale(self):
+    def create_grayscale_from_rgb(self): #  Yields a grayscale image from raw image
         grayscale_image = Image.open(self.image).convert("L")
         grayscale_array = np.asarray(grayscale_image)
         self.grayscale_array = grayscale_array[:, 50:][:, :-50]
 
-    def get_bright_and_dark_pixels(self):
+    def get_bright_and_dark_pixels(self):  # Gives the location for the dark pixels
         indices_dark = np.where(self.grayscale_array < Variance.pixel_value)
         self.index_array_x_black = indices_dark[1]
         self.index_array_y_black = indices_dark[0]
 
-    def calculate_variance(self):
+    def calculate_variance(self):  # Calculates the total variance
         variance_y = np.var(self.index_array_x_black)
         variance_x = np.var(self.index_array_y_black)
         if math.isnan(variance_y):
@@ -40,7 +40,7 @@ class Variance:
 
 class WritingCSV(Variance):
 
-    def write_plot_data_2_csv(self, index_of_variance):
+    def write_plot_data_2_csv(self, index_of_variance):  # Writes a csv file with all the variance measures
         complete_name = os.path.join(self.video_directory, 'variance.csv')
         if index_of_variance == 1:
             with open(complete_name, 'w') as fout1:
@@ -69,7 +69,7 @@ def main():
         variance_index += 1
         image_name_path = os.path.join(image_directory, image_name)
         variance_image = Variance(image_name_path)
-        variance_image.create_rgb_from_grayscale()
+        variance_image.create_grayscale_from_rgb()
         variance_image.get_bright_and_dark_pixels()
         variance_image.calculate_variance()
         csv = WritingCSV(image_name_path)
