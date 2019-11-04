@@ -29,7 +29,7 @@ class BlurDetector:
         os.makedirs(os.path.join(str(root), 'data', 'files', video_name), exist_ok=True)
         with open(os.path.join(str(root), 'data', 'files', video_name, 'blur_results.txt'), 'w') as writer:
             blurry_list = []
-            writer.write(video_name + '\n')
+            writer.write('Video: ' + video_name + '\n')
             try:
                 average = round(sum(self.fm_list) / len(self.fm_list), 2)
                 writer.write(' ' * 5 + ' Average of blurriness: ' + str(average) + '\n')

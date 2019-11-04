@@ -1,6 +1,4 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-
+﻿<!doctype html>
 <head>
 
   <meta charset="utf-8">
@@ -91,10 +89,6 @@
         <button class="rounded-circle border-0" id="sidebarToggle"></button>
       </div>
 
-      <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-        <i class="fas fa-download fa-sm text-white-50">
-        </i> Upload videos </a>
-
     </ul>
     <!-- End of Sidebar -->
 
@@ -176,78 +170,41 @@
           <!-- Page Heading -->
           <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <h1 class="h3 mb-0 text-gray-800">Projects</h1>
-            <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-              <i class="fas fa-download fa-sm text-white-50">
-              </i> Upload videos </a>
+            <form action="/" method="POST" enctype=multipart/form-data>
+              <label class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <input class="fas fa-download fa-sm text-white-50" type="file" name="video" onchange="this.form.submit()" hidden>
+                Upload videos
+              </label>
+            </form>
           </div>
-
-          <!-- DataTales Example -->
-          <div class="card shadow mb-4">
-            <div class="card-header py-3">
-              <h6 class="m-0 font-weight-bold text-primary">DataTables Example</h6>
-            </div>
-            <div class="card-body">
-              <div class="table-responsive">
-                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Position</th>
-                      <th>Office</th>
-                      <th>Age</th>
-                      <th>Start date</th>
-                      <th>Salary</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>Tiger Nixon</td>
-                      <td>System Architect</td>
-                      <td>Edinburgh</td>
-                      <td>61</td>
-                      <td>2011/04/25</td>
-                      <td>$320,800</td>
-                    </tr>
-                    {% for task in tasks %}
-                    <tr>
-                      <td>{{ task.content}}</td>
-                      <td>
-                        <a href="/delete/{{task.id}}">Delete</a>
-                        <br>
-                        <a href="/update/{{task.id}}">Update</a>
-                      </td>
-                    </tr>
-                    {% endfor %}
-                    <tr>
-                      <td>Garrett Winters</td>
-                      <td>Accountant</td>
-                      <td>Tokyo</td>
-                      <td>63</td>
-                      <td>2011/07/25</td>
-                      <td>$170,750</td>
-                    </tr>
-                    <tr>
-                      <td>Ashton Cox</td>
-                      <td>Junior Technical Author</td>
-                      <td>San Francisco</td>
-                      <td>66</td>
-                      <td>2009/01/12</td>
-                      <td>$86,000</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <form action="/" method="POST">
-                  <input type="text" name="thecontent" id="thecontent">
-                  <label class="btn btn-primary">
-                    <input class="btn btn-primary" type="submit" hidden>
-                    <i class="fas fa-search fa-sm"></i>
-                  </label>
-                </form>
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+              <div class="p-2 bg-gradient-danger text-white">
+                <ul class=flashes>
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+                </ul>
               </div>
+              {% endif %}
+            {% endwith %}
+            {% block body %}{% endblock %}
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                  <h6 class="m-0 font-weight-bold text-primary">Results</h6>
+                </div>
+                <div class="card-body">
+                  {% for result in results %}
+                      {{ result }}<br>
+                  {% endfor %}
+                </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+  </div>
 
 
       <!-- End of Main Content -->
@@ -321,5 +278,4 @@
    <!--Page level custom scripts -->
   <script src="/static/js/demo/datatables-demo.js"></script>
 </body>
-
 </html>
