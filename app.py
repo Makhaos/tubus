@@ -103,9 +103,9 @@ def allowed_video_type(videoname):
 
 
 def job_status(job_id, video_name_no_extension):
-    job = Job.fetch(job_id, connection=conn)
+    job = Job.fetch('video_processing', connection=conn)
     while True:
-        if 2 == 3:
+        if job.is_finished:
             return video_results(video_name_no_extension)
 
 
@@ -132,11 +132,11 @@ def upload_video():
             video.save(os.path.join(app.config['UPLOAD_FOLDER'], videoname))
             video_name_no_extension, video_name_extension = os.path.splitext(videoname)
             # Background process of video processing
-            background_process = q.enqueue(main)
+            background_process = q.enqueue(main, job_id='video_processing')
             flash('Video is processing')
             job_id = background_process.get_id()
             # Background process to verify if video processing is completed
-            q.enqueue(job_status, job_id, video_name_no_extension)
+            q.enqueue(job_status, 'video_processing', video_name_no_extension)
             results = video_name_no_extension
             return render_template('index.html', results=results)
         else:
