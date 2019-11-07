@@ -128,25 +128,24 @@ def upload_video():
             flash('No video part')
             return redirect(request.url)
         video = request.files['video']
-        if request.form['submit_button']:
-            if video.filename == '':
-                flash('No selected video')
-                return redirect(request.url)
-            if video and allowed_video_type(video.filename):
-                videoname = secure_filename(video.filename)
-                video.save(os.path.join(app.config['UPLOAD_FOLDER'], videoname))
-                video_name_no_extension, video_name_extension = os.path.splitext(videoname)
-                # Background process of video processing
-                background_process = q.enqueue(main, job_id='video_processing', result_ttl=5000)
-                flash('Video is processing')
-                job_id = background_process.get_id()
-                # # Background process to verify if video processing is completed
-                # q.enqueue(job_status, 'video_processing', video_name_no_extension)
-                results = video_name_no_extension
-            else:
-                flash('File type not supported')
-                return redirect(request.url)
-            return render_template('index.html', results=results)
+        if video.filename == '':
+            flash('No selected video')
+            return redirect(request.url)
+        if video and allowed_video_type(video.filename):
+            videoname = secure_filename(video.filename)
+            video.save(os.path.join(app.config['UPLOAD_FOLDER'], videoname))
+            video_name_no_extension, video_name_extension = os.path.splitext(videoname)
+            # Background process of video processing
+            background_process = q.enqueue(main, job_id='video_processing', result_ttl=5000)
+            flash('Video is processing')
+            job_id = background_process.get_id()
+            # # Background process to verify if video processing is completed
+            # q.enqueue(job_status, 'video_processing', video_name_no_extension)
+            results = video_name_no_extension
+        else:
+            flash('File type not supported')
+            return redirect(request.url)
+        return render_template('index.html', results=results)
 
 
 @app.route('/results', methods=['POST'])
