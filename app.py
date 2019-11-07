@@ -124,6 +124,20 @@ def allowed_video_type(videoname):
 @app.route('/', methods=['POST'])
 def upload_video():
     if request.method == 'POST':
+        if request.form['submit_button']:
+            if os.path.exists(os.path.join(str(root), 'data')):
+                print('data exists')
+                results = 'data exists'
+                if os.path.exists(os.path.join(str(root), 'data', 'file')):
+                    print('files exists')
+                    results = 'files exists'
+                else:
+                    print('there are no files')
+                    results = 'there are no files'
+            else:
+                print('there is no data')
+                results = 'there is no data'
+            return render_template('index.html', results=results)
         if 'video' not in request.files:
             flash('No video part')
             return redirect(request.url)
@@ -142,28 +156,9 @@ def upload_video():
             # # Background process to verify if video processing is completed
             # q.enqueue(job_status, 'video_processing', video_name_no_extension)
             results = video_name_no_extension
-            return render_template('index.html', results=results)
         else:
             flash('File type not supported')
             return redirect(request.url)
-
-
-@app.route('/', methods=['POST'])
-def post_results():
-    if request.method == 'POST':
-        if request.form['submit_button'] == 'show_results':
-            if os.path.exists(os.path.join(str(root), 'data')):
-                print('data exists')
-                results = 'data exists'
-                if os.path.exists(os.path.join(str(root), 'data', 'file')):
-                    print('files exists')
-                    results = 'files exists'
-                else:
-                    print('there are no files')
-                    results = 'there are no files'
-            else:
-                print('there is no data')
-                results = 'there is no data'
         return render_template('index.html', results=results)
 
 
