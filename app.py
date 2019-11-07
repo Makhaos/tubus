@@ -102,22 +102,22 @@ def allowed_video_type(videoname):
 #         response['message'] = job.exc_info.strip().split('\n')[-1]
 
 
-def job_status(job_id, video_name_no_extension):
-    job = Job.fetch('video_processing', connection=conn)
-    while True:
-        job.refresh()
-        print(job.get_id(), job.get_status(), job.meta.get('word'))
-        if job.is_finished:
-            print(job.get_status())
-            break
-
-
-def video_results(video_name_no_extension):
-    with open(
-            os.path.join(os.path.join(str(root), 'data', 'files'), video_name_no_extension, 'blur_results.txt'),
-            'r') as result_file:
-        results = result_file.readlines()
-    return render_template('index.html', results=results)
+# def job_status(job_id, video_name_no_extension):
+#     job = Job.fetch('video_processing', connection=conn)
+#     while True:
+#         job.refresh()
+#         print(job.get_id(), job.get_status(), job.meta.get('word'))
+#         if job.is_finished:
+#             print(job.get_status())
+#             break
+#
+#
+# def video_results(video_name_no_extension):
+#     with open(
+#             os.path.join(os.path.join(str(root), 'data', 'files'), video_name_no_extension, 'blur_results.txt'),
+#             'r') as result_file:
+#         results = result_file.readlines()
+#     return render_template('index.html', results=results)
 
 
 @app.route('/', methods=['POST'])
@@ -141,7 +141,7 @@ def upload_video():
             # # Background process to verify if video processing is completed
             # q.enqueue(job_status, 'video_processing', video_name_no_extension)
             results = video_name_no_extension
-            return render_template('index.html', results=results), job_status(job_id, video_name_no_extension)
+            return render_template('index.html', results=results)
         else:
             flash('File type not supported')
             return redirect(request.url)
