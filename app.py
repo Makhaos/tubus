@@ -7,6 +7,7 @@ from common import utils
 from src.main import main
 from worker import conn
 from rq import Queue
+from rq.job import Job
 
 root = utils.get_project_root()
 os.makedirs(os.path.join(str(root), 'data', 'videos'), exist_ok=True)
@@ -102,7 +103,7 @@ def allowed_video_type(videoname):
 
 
 def job_status(job_id, video_name_no_extension):
-    job = q.fetch_job(job_id)
+    job = Job.fetch(job_id, connection=conn)
     while True:
         if job.is_finished:
             return video_results(video_name_no_extension)
