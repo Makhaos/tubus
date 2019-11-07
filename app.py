@@ -105,7 +105,9 @@ def upload_video():
         if video and allowed_video_type(video.filename):
             videoname = secure_filename(video.filename)
             video.save(os.path.join(app.config['UPLOAD_FOLDER'], videoname))
-            background_process = q.enqueue(main.main(), 'http://heroku.com')
+            # Background process
+            print('START')
+            q.enqueue(main.main)
             video_name_no_extension, video_name_extension = os.path.splitext(videoname)
             with open(
                     os.path.join(os.path.join(str(root), 'data', 'files'), video_name_no_extension, 'blur_results.txt'),
