@@ -135,10 +135,10 @@ def upload_video():
             background_process = q.enqueue(main, job_id='video_processing')
             flash('Video is processing')
             job_id = background_process.get_id()
-            # Background process to verify if video processing is completed
-            q.enqueue(job_status, 'video_processing', video_name_no_extension)
+            # # Background process to verify if video processing is completed
+            # q.enqueue(job_status, 'video_processing', video_name_no_extension)
             results = video_name_no_extension
-            return render_template('index.html', results=results)
+            return render_template('index.html', results=results), job_status(job_id, video_name_no_extension)
         else:
             flash('File type not supported')
             return redirect(request.url)
