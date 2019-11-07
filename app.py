@@ -109,7 +109,7 @@ def job_status(job_id, video_name_no_extension):
         print(job.get_id(), job.get_status(), job.meta.get('word'))
         if job.is_finished:
             print(job.get_status())
-            return video_results(video_name_no_extension)
+            break
 
 
 def video_results(video_name_no_extension):
