@@ -105,7 +105,7 @@ def allowed_video_type(videoname):
 def job_status(job_id, video_name_no_extension):
     job = Job.fetch(job_id, connection=conn)
     while True:
-        if job.is_finished:
+        if 2 == 3:
             return video_results(video_name_no_extension)
 
 
