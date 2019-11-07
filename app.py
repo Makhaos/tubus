@@ -121,9 +121,9 @@ def allowed_video_type(videoname):
 #     return render_template('index.html', results=results)
 
 
-@app.route('/', methods=['GET'])
+@app.route('/', methods=['POST'])
 def upload_video():
-    if request.method == 'GET':
+    if request.method == 'POST':
         if 'video' not in request.files:
             flash('No video part')
             return redirect(request.url)
@@ -150,15 +150,21 @@ def upload_video():
 
 @app.route('/', methods=['POST'])
 def post_results():
-    if os.path.exists(os.path.join(str(root), 'data')):
-        print('data exists')
-    else:
-        print('there is no data')
-    if os.path.exists(os.path.join(str(root), 'data', 'file')):
-        print('files exists')
-    else:
-        print('there are no files')
-    return render_template('index.html')
+    if request.method == 'POST':
+        if request.form['submit_button'] == 'show_results':
+            if os.path.exists(os.path.join(str(root), 'data')):
+                print('data exists')
+                results = 'data exists'
+                if os.path.exists(os.path.join(str(root), 'data', 'file')):
+                    print('files exists')
+                    results = 'files exists'
+                else:
+                    print('there are no files')
+                    results = 'there are no files'
+            else:
+                print('there is no data')
+                results = 'there is no data'
+        return render_template('index.html', results=results)
 
 
 if __name__ == "__main__":
