@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from common import utils
-from src import main
+from src.main import main
 from worker import conn
 from rq import Queue
 
@@ -107,7 +107,7 @@ def upload_video():
             video.save(os.path.join(app.config['UPLOAD_FOLDER'], videoname))
             # Background process
             print('START')
-            q.enqueue(main.main)
+            q.enqueue(main)
             video_name_no_extension, video_name_extension = os.path.splitext(videoname)
             with open(
                     os.path.join(os.path.join(str(root), 'data', 'files'), video_name_no_extension, 'blur_results.txt'),
