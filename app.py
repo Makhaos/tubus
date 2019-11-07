@@ -3,8 +3,9 @@ from flask import Flask, render_template, request, redirect, url_for, flash, sen
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from src import main
+from src import main, worker
 from common import utils
+from rq import Queue
 
 root = utils.get_project_root()
 os.makedirs(os.path.join(str(root), 'data', 'videos'), exist_ok=True)
@@ -16,6 +17,7 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tubus.db'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy(app)
+q = Queue(connection=worker.conn)
 
 
 class Todo(db.Model):
@@ -102,7 +104,7 @@ def upload_video():
         if video and allowed_video_type(video.filename):
             videoname = secure_filename(video.filename)
             video.save(os.path.join(app.config['UPLOAD_FOLDER'], videoname))
-            main.main()
+            background_process = q.enqueue(main.main(), 'http://heroku.com')
             video_name_no_extension, video_name_extension = os.path.splitext(videoname)
             with open(
                     os.path.join(os.path.join(str(root), 'data', 'files'), video_name_no_extension, 'blur_results.txt'),
