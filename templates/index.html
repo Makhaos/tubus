@@ -170,10 +170,19 @@
           <!-- Page Heading -->
           <div class="d-sm-flex align-items-center justify-content-between mb-4">
             <h1 class="h3 mb-0 text-gray-800">Projects</h1>
-            <form action="/" method="POST" enctype=multipart/form-data>
+            <form action="/" method="GET" enctype=multipart/form-data>
               <label class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
                 <input class="fas fa-download fa-sm text-white-50" type="file" name="video" onchange="this.form.submit()" hidden>
                 Upload videos
+              </label>
+            </form>
+          </div>
+          <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Projects</h1>
+            <form action="/" method="POST">
+              <label class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <input class="fas fa-download fa-sm text-white-50" type="button" hidden>
+                Get results
               </label>
             </form>
           </div>

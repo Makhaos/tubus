@@ -1,4 +1,5 @@
 import os
+from os import path
 from flask import Flask, render_template, request, redirect, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
@@ -120,9 +121,9 @@ def allowed_video_type(videoname):
 #     return render_template('index.html', results=results)
 
 
-@app.route('/', methods=['POST'])
+@app.route('/', methods=['GET'])
 def upload_video():
-    if request.method == 'POST':
+    if request.method == 'GET':
         if 'video' not in request.files:
             flash('No video part')
             return redirect(request.url)
@@ -135,7 +136,7 @@ def upload_video():
             video.save(os.path.join(app.config['UPLOAD_FOLDER'], videoname))
             video_name_no_extension, video_name_extension = os.path.splitext(videoname)
             # Background process of video processing
-            background_process = q.enqueue(main, job_id='video_processing')
+            background_process = q.enqueue(main, job_id='video_processing', result_ttl=5000)
             flash('Video is processing')
             job_id = background_process.get_id()
             # # Background process to verify if video processing is completed
@@ -145,6 +146,19 @@ def upload_video():
         else:
             flash('File type not supported')
             return redirect(request.url)
+
+
+@app.route('/', methods=['POST'])
+def post_results():
+    if os.path.exists(os.path.join(str(root), 'data')):
+        print('data exists')
+    else:
+        print('there is no data')
+    if os.path.exists(os.path.join(str(root), 'data', 'file')):
+        print('files exists')
+    else:
+        print('there are no files')
+    return render_template('index.html')
 
 
 if __name__ == "__main__":
