@@ -62,16 +62,16 @@ def index():
 #     return render_template('buttons.html')
 
 
-@app.route('/delete/<int:id>')
-def delete(id):
-    task_to_delete = Todo.query.get_or_404(id)
-
-    try:
-        db.session.delete(task_to_delete)
-        db.session.commit()
-        return redirect('/')
-    except:
-        return 'There was a problem deleting that task'
+# @app.route('/delete/<int:id>')
+# def delete(id):
+#     task_to_delete = Todo.query.get_or_404(id)
+#
+#     try:
+#         db.session.delete(task_to_delete)
+#         db.session.commit()
+#         return redirect('/')
+#     except:
+#         return 'There was a problem deleting that task'
 
 
 # Not yet implemented. Video @ 34min
@@ -86,10 +86,34 @@ def allowed_video_type(videoname):
            videoname.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-@app.route('/data/videos/<videoname>')
-def uploaded_video(videoname):
-    return send_from_directory(app.config['UPLOAD_FOLDER'],
-                               videoname)
+# @app.route('/data/videos/<videoname>')
+# def uploaded_video(videoname):
+#     return send_from_directory(app.config['UPLOAD_FOLDER'],
+#                                videoname)
+
+# def job_stastus(job_id, video_name_no_extension):
+#     job = q.fetch_job(job_id)
+#     if job is None:
+#         return render_template('index.html'), job_status(job_id, video_name_no_extension)
+#     if job.is_finished:
+#         return video_results(video_name_no_extension)
+#     if job.is_failed:
+#         response['message'] = job.exc_info.strip().split('\n')[-1]
+
+
+def job_status(job_id, video_name_no_extension):
+    job = q.fetch_job(job_id)
+    while True:
+        if job.is_finished:
+            return video_results(video_name_no_extension)
+
+
+def video_results(video_name_no_extension):
+    with open(
+            os.path.join(os.path.join(str(root), 'data', 'files'), video_name_no_extension, 'blur_results.txt'),
+            'r') as result_file:
+        results = result_file.readlines()
+    return render_template('index.html', results=results)
 
 
 @app.route('/', methods=['POST'])
@@ -105,15 +129,15 @@ def upload_video():
         if video and allowed_video_type(video.filename):
             videoname = secure_filename(video.filename)
             video.save(os.path.join(app.config['UPLOAD_FOLDER'], videoname))
-            # Background process
-            print('START')
-            q.enqueue(main)
             video_name_no_extension, video_name_extension = os.path.splitext(videoname)
-            with open(
-                    os.path.join(os.path.join(str(root), 'data', 'files'), video_name_no_extension, 'blur_results.txt'),
-                    'r') as result_file:
-                results = result_file.readlines()
-            return render_template('index.html', results=results, )
+            # Background process of video processing
+            background_process = q.enqueue(main)
+            flash('Video is processing')
+            job_id = background_process.get_id()
+            # Background process to verify if video processing is completed
+            q.enqueue(job_status, job_id, video_name_no_extension)
+            results = video_name_no_extension
+            return render_template('index.html', results=results)
         else:
             flash('File type not supported')
             return redirect(request.url)
