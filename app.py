@@ -1,10 +1,11 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash, send_from_directory
+from flask import Flask, render_template, request, redirect, flash, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from src import main, worker
 from common import utils
+from src import main
+from worker import conn
 from rq import Queue
 
 root = utils.get_project_root()
@@ -17,7 +18,7 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tubus.db'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy(app)
-q = Queue(connection=worker.conn)
+q = Queue(connection=conn)
 
 
 class Todo(db.Model):
