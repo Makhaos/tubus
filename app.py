@@ -20,7 +20,7 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tubus.db'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy(app)
-q = Queue(connection=conn)
+q = Queue(connection=conn, default_timeout=3600)
 
 
 class Todo(db.Model):
@@ -154,7 +154,7 @@ def show_results():
         if os.path.exists(os.path.join(str(root), 'data')):
             print('data exists')
             results = 'data exists'
-            if os.path.exists(os.path.join(str(root), 'data', 'file')):
+            if os.path.exists(os.path.join(str(root), 'data', 'files')):
                 print('files exists')
                 results = 'files exists'
             else:
