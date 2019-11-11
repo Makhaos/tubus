@@ -50,6 +50,7 @@ def main():
         circle_pos.count_pixels_in_circle()
         circle_pos.plot_circles_on_raw_image()
         identify_circles.CirclePosition.features_selected_circle = list()
+        return 6
 
 
 if __name__ == "__main__":
