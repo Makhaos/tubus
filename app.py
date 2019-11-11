@@ -6,9 +6,9 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 from common import utils
 from src.main import main
-from worker import conn
+from redis import Redis
+# from worker import conn
 from rq import Queue
-from rq.job import Job
 
 root = utils.get_project_root()
 os.makedirs(os.path.join(str(root), 'data', 'videos'), exist_ok=True)
@@ -20,7 +20,8 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tubus.db'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy(app)
-q = Queue(connection=conn, default_timeout=3600)
+redis_conn = Redis()
+q = Queue(connection=redis_conn, default_timeout=3600)
 
 
 class Todo(db.Model):
