@@ -8,6 +8,7 @@ from common import utils
 from src.main import main
 from worker import conn
 from rq import Queue
+import time
 
 root = utils.get_project_root()
 os.makedirs(os.path.join(str(root), 'data', 'videos'), exist_ok=True)
@@ -83,6 +84,8 @@ def index():
 
 def simple_stuff():
     os.makedirs(os.path.join(str(root), 'data', 'files'), exist_ok=True)
+    time.sleep(10)
+    flash('Simple is done')
     return 'this is simple'
 
 
