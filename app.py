@@ -6,8 +6,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 from common import utils
 from src.main import main
-from redis import Redis
-# from worker import conn
+from worker import conn
 from rq import Queue
 
 root = utils.get_project_root()
@@ -20,8 +19,7 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tubus.db'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy(app)
-redis_conn = Redis()
-q = Queue(connection=redis_conn, default_timeout=3600)
+q = Queue(connection=conn, default_timeout=3600)
 
 
 class Todo(db.Model):
@@ -83,6 +81,10 @@ def index():
 #     flash('update')
 #     return 'updated'
 
+def simple_stuff():
+    os.makedirs(os.path.join(str(root), 'data', 'files'), exist_ok=True)
+    return 'this is simple'
+
 
 def allowed_video_type(videoname):
     return '.' in videoname and \
@@ -137,7 +139,8 @@ def upload_video():
             video.save(os.path.join(app.config['UPLOAD_FOLDER'], videoname))
             video_name_no_extension, video_name_extension = os.path.splitext(videoname)
             # Background process of video processing
-            background_process = q.enqueue(main, job_id='video_processing', result_ttl=5000)
+            # background_process = q.enqueue(main, job_id='video_processing', result_ttl=5000)
+            background_process = q.enqueue(simple_stuff, job_id='video_processing', result_ttl=5000)
             flash('Video is processing')
             job_id = background_process.get_id()
             # # Background process to verify if video processing is completed
