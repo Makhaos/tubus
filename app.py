@@ -83,9 +83,12 @@ def index():
 #     return 'updated'
 
 def simple_stuff():
-    os.makedirs(os.path.join(str(root), 'data', 'files'), exist_ok=True)
     time.sleep(10)
-    flash('Simple is done')
+    os.makedirs(os.path.join(str(root), 'data', 'files'), exist_ok=True)
+    if os.path.exists(os.path.join(str(root), 'data', 'files')):
+        print('files exists')
+    else:
+        print('there are no files')
     return 'this is simple'
 
 
