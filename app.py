@@ -57,8 +57,8 @@ def processing_video(video_name):
     if request.method == 'GET':
         video = download_file(video_name, BUCKET)
         # Background process of video processing
-        # background_process = q.enqueue(main(video), job_id='video_processing', result_ttl=5000)
-        main(video)
+        background_process = q.enqueue(main(video), job_id='video_processing', result_ttl=5000)
+        # main(video)
         flash('Video is processing')
         return render_template('index.html')
 
@@ -78,7 +78,8 @@ def show_results():
         else:
             print('there is no data')
             results = 'there is no data'
-        return render_template('index.html', results=results)
+        videos = list_files("tubus-system")
+        return render_template('index.html', results=results, videos=videos)
 
 
 if __name__ == "__main__":
