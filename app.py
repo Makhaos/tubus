@@ -49,7 +49,7 @@ def upload_video():
             flash('No selected video')
             return redirect(request.url)
         if video and allowed_video_type(video.filename):
-            # video.save(os.path.join(app.config['VIDEOS_FOLDER'], video.filename))
+            video.save(os.path.join(app.config['VIDEOS_FOLDER'], video.filename))
             upload_file(os.path.join(app.config['VIDEOS_FOLDER'], video.filename), BUCKET, video.filename)
             return redirect("/storage")
         else:
