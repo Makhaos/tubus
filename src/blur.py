@@ -42,6 +42,8 @@ class BlurDetector:
                 writer.write(' ' * 5 + ' Percentage of blurry images ' + str(
                     round(len(blurry_list) / len(self.fm_list), 2) * 100) + ' % ' + '\n')
                 plot.plot_list(self.fm_list, video_name, 'blur_plot')
+                print('Blur results completed. File located at',
+                      os.path.join(str(root), 'data', 'files', video_name, 'blur_results.txt'))
             except ZeroDivisionError as error:
                 print(error, 'in method blur_results:\n',
                       'To get results, the Laplacian needs to be calculated before. '

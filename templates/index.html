@@ -198,11 +198,27 @@
 
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
+                  <h6 class="m-0 font-weight-bold text-primary">Videos</h6>
+                </div>
+                <div class="card-body">
+                  <ul>
+                  {% for video in videos %}
+                    <li>
+                      <a href="/processing/{{ video.Key }}"> {{ video.Key }} </a>
+                    </li>
+                  {% endfor %}
+                  </ul>
+                </div>
+            </div>
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
                   <h6 class="m-0 font-weight-bold text-primary">Results</h6>
                 </div>
                 <div class="card-body">
                   {% for result in results %}
-                      {{ result }}<br>
+
+                      {{ result }}
+
                   {% endfor %}
                 </div>
             </div>
