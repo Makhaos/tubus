@@ -25,6 +25,11 @@ def index():
     return render_template('index.html')
 
 
+def download_and_process(video_name):
+    video = download_file(video_name, BUCKET)
+    main(video)
+
+
 def allowed_video_type(video_name):
     return '.' in video_name and \
            video_name.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -44,7 +49,7 @@ def upload_video():
             flash('No selected video')
             return redirect(request.url)
         if video and allowed_video_type(video.filename):
-            video.save(os.path.join(app.config['VIDEOS_FOLDER'], video.filename))
+            # video.save(os.path.join(app.config['VIDEOS_FOLDER'], video.filename))
             upload_file(os.path.join(app.config['VIDEOS_FOLDER'], video.filename), BUCKET, video.filename)
             return redirect("/storage")
         else:
@@ -55,9 +60,8 @@ def upload_video():
 @app.route("/processing/<video_name>", methods=['GET'])
 def processing_video(video_name):
     if request.method == 'GET':
-        video = download_file(video_name, BUCKET)
         # Background process of video processing
-        background_process = q.enqueue(main, video, job_id='video_processing', result_ttl=5000)
+        q.enqueue(download_and_process, video_name, job_id='video_processing', result_ttl=5000)
         # main(video)
         flash('Video is processing')
         return render_template('index.html')
