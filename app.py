@@ -46,7 +46,6 @@ def upload_video():
             video.save(os.path.join(app.config['UPLOAD_FOLDER'], videoname))
             video_name_no_extension, video_name_extension = os.path.splitext(videoname)
             # Background process of video processing
-            # background_process = q.enqueue(main, job_id='video_processing', result_ttl=5000)
             background_process = q.enqueue(main, job_id='video_processing', result_ttl=5000)
             flash('Video is processing')
             job_id = background_process.get_id()

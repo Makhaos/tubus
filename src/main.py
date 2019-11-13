@@ -6,8 +6,7 @@ from src import video_to_frames, blur, color_detection, identify_pixels, identif
 
 def main():
     root = utils.get_project_root()
-    os.makedirs(os.path.join(str(root), 'data', 'videos'), exist_ok=True)
-    videos_folder = os.path.join(str(root), 'data', 'videos')
+    videos_folder = os.path.join(str(root), 'for_testing')
     frames_folder = os.path.join(str(root), 'data', 'frames')
     frames_creator = video_to_frames.FramesCreator(videos_folder, frames_folder, crop=True)
     frames_creator.get_frame()
