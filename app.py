@@ -30,9 +30,8 @@ def download_and_process(video_name):
     main(video)  # TODO get the results here, after work is done, data is deleted
 
 
-def upload(video):
-    video.save(os.path.join(app.config['VIDEOS_FOLDER'], video.filename))
-    upload_file(os.path.join(app.config['VIDEOS_FOLDER'], video.filename), BUCKET, video.filename)
+def upload(video_name):
+    upload_file(os.path.join(app.config['VIDEOS_FOLDER'], video_name), BUCKET, video_name)
     return redirect("/storage")
 
 
@@ -55,8 +54,9 @@ def upload_video():
             flash('No selected video')
             return redirect(request.url)
         if video and allowed_video_type(video.filename):
+            video.save(os.path.join(app.config['VIDEOS_FOLDER'], video.filename))
             flash('Uploading')
-            q.enqueue(upload, video, job_id='video_uploading', result_ttl=5000)
+            q.enqueue(upload, video.filename, job_id='video_uploading', result_ttl=5000)
             return redirect(request.url)
         else:
             flash('File type not supported')
