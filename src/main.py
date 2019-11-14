@@ -49,3 +49,4 @@ def main(video):
     circle_pos.plot_circles_on_raw_image()
     identify_circles.CirclePosition.features_selected_circle = list()
     print("Main program took", round(time.time() - start_time, 2), "seconds to run")
+    return

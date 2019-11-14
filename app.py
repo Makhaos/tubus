@@ -6,6 +6,7 @@ from common.aws_manager import upload_file, download_file, list_files
 from worker import conn
 from rq import Queue
 from src.main import main
+import time
 
 root = utils.get_project_root()
 os.makedirs(os.path.join(str(root), 'data', 'videos'), exist_ok=True)
@@ -27,7 +28,10 @@ def index():
 
 def download_and_process(video_name):
     video = download_file(video_name, BUCKET)
-    main(video)
+    main(video)  # TODO get the results here, after work is done, data is deleted
+
+
+# def upload(video_name):
 
 
 def allowed_video_type(video_name):
@@ -49,8 +53,13 @@ def upload_video():
             flash('No selected video')
             return redirect(request.url)
         if video and allowed_video_type(video.filename):
+            # TODO make it to background as well
+            start_time = time.time()
             video.save(os.path.join(app.config['VIDEOS_FOLDER'], video.filename))
+            print("Video.save took", round(time.time() - start_time, 2), "seconds to run")
+            start_time = time.time()
             upload_file(os.path.join(app.config['VIDEOS_FOLDER'], video.filename), BUCKET, video.filename)
+            print("Bucket upload took", round(time.time() - start_time, 2), "seconds to run")
             return redirect("/storage")
         else:
             flash('File type not supported')
