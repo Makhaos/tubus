@@ -35,6 +35,7 @@ def download_and_process(video_name):
 @app.route('/sign-s3/')
 def sign_s3():
     # Load necessary information into the application
+    print('yes this is s3')
     S3_BUCKET = os.environ.get('S3_BUCKET')
 
     # Load required data from the request
@@ -74,22 +75,21 @@ def storage():
     return render_template('index.html', videos=videos)
 
 
-# @app.route('/uploading', methods=['POST'])
-# def upload_video():
-#     if request.method == 'POST':
-#         video = request.files['video']
-#         if video.filename == '':
-#             flash('No selected video')
-#             return redirect(request.url)
-#         if video and allowed_video_type(video.filename):
-#             video.save(os.path.join(app.config['VIDEOS_FOLDER'], video.filename))
-#             flash('Uploading')
-#             q.enqueue(upload, video.filename, job_id='video_uploading', result_ttl=5000)
-#             upload_file(os.path.join(app.config['VIDEOS_FOLDER'], video.filename), BUCKET, video.filename)
-#             return redirect("/storage")
-#         else:
-#             flash('File type not supported')
-#             return redirect(request.url)
+@app.route('/uploading', methods=['POST'])
+def upload_video():
+    if request.method == 'POST':
+        video = request.files['video']
+        if video.filename == '':
+            flash('No selected video')
+            return redirect(request.url)
+        if video and allowed_video_type(video.filename):
+            video.save(os.path.join(app.config['VIDEOS_FOLDER'], video.filename))
+            flash('Uploading')
+            upload_file(os.path.join(app.config['VIDEOS_FOLDER'], video.filename), BUCKET, video.filename)
+            return redirect("/storage")
+        else:
+            flash('File type not supported')
+            return redirect(request.url)
 
 
 @app.route("/processing/<video_name>", methods=['GET'])
