@@ -182,10 +182,12 @@
                 Show Results
               </label>
             </form>
-            <label class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <form action="/sign-s3" method="GET" enctype=multipart/form-data>
+              <label class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
                 <input class="fas fa-download fa-sm text-white-50" type="file" name="video" onchange="this.form.submit()" hidden>
                 Upload directly
               </label>
+            </form>
           </div>
             {% with messages = get_flashed_messages() %}
               {% if messages %}

@@ -32,7 +32,7 @@ def download_and_process(video_name):
     main(video)  # TODO get the results here, after work is done, data is deleted
 
 
-@app.route('/sign-s3/')
+@app.route('/sign-s3', methods=['GET'])
 def sign_s3():
     # Load necessary information into the application
     print('yes this is s3')
