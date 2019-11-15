@@ -1,13 +1,12 @@
 import os
-import json
-import boto3
-from flask import Flask, render_template, request, redirect, flash, send_file, url_for
+from flask import Flask, render_template, request, redirect, flash, send_file, url_for, make_response
 from werkzeug.utils import secure_filename
 from common import utils
 from common.aws_manager import upload_file, download_file, list_files
 from worker import conn
 from rq import Queue
 from src.main import main
+import logging
 
 root = utils.get_project_root()
 os.makedirs(os.path.join(str(root), 'data', 'videos'), exist_ok=True)
@@ -21,6 +20,8 @@ app.config['VIDEOS_FOLDER'] = VIDEOS_FOLDER
 
 q = Queue(connection=conn, default_timeout=3600)
 
+log = logging.getLogger('pydrop')
+
 
 @app.route('/')
 def index():
@@ -30,53 +31,6 @@ def index():
 def download_and_process(video_name):
     video = download_file(video_name, BUCKET)
     main(video)  # TODO get the results here, after work is done, data is deleted
-
-
-@app.route('/sign-s3/<path:file_name_data>/<path:file_type_data>', methods=["GET", "POST"])
-def sign_s3(file_name, file_type):
-    # Load necessary information into the application
-    S3_BUCKET = BUCKET
-
-    # Load required data from the request
-    # file_name = request.args.get('file-name')
-    print(file_name)
-    # file_type = request.args.get('file-type')
-    print(file_type)
-
-    # Initialise the S3 client
-    s3 = boto3.client('s3')
-
-    # Generate and return the presigned URL
-    presigned_post = s3.generate_presigned_post(
-        Bucket=S3_BUCKET,
-        Key=file_name,
-        Fields={"acl": "public-read", "Content-Type": file_type},
-        Conditions=[
-            {"acl": "public-read"},
-            {"Content-Type": file_type}
-        ],
-        ExpiresIn=3600
-    )
-
-    # Return the data to the client
-    return json.dumps({
-        'data': presigned_post,
-        'url': 'https://%s.s3.amazonaws.com/%s' % (S3_BUCKET, file_name)
-    })
-
-
-@app.route("/submit-form/", methods=["POST"])
-def submit_form():
-    # Collect the data posted from the HTML form in account.html:
-    username = request.form["username"]
-    full_name = request.form["full-name"]
-    avatar_url = request.form["avatar-url"]
-
-    # Provide some procedure for storing the new details
-    # update_account(username, full_name, avatar_url)
-
-    # Redirect to the user's profile page, if appropriate
-    return redirect("/storage")
 
 
 def video_type(video_name):
@@ -105,6 +59,49 @@ def upload_video():
         else:
             flash('File type not supported')
             return redirect(request.url)
+
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    file = request.files['file']
+
+    save_path = os.path.join(app.config['VIDEOS_FOLDER'], secure_filename(file.filename))
+    current_chunk = int(request.form['dzchunkindex'])
+
+    # If the file already exists it's ok if we are appending to it,
+    # but not if it's new file that would overwrite the existing one
+    if os.path.exists(save_path) and current_chunk == 0:
+        # 400 and 500s will tell dropzone that an error occurred and show an error
+        return make_response(('File already exists', 400))
+
+    try:
+        with open(save_path, 'ab') as f:
+            f.seek(int(request.form['dzchunkbyteoffset']))
+            f.write(file.stream.read())
+            upload_file(save_path, BUCKET, secure_filename(file.filename))
+    except OSError:
+        # log.exception will include the traceback so we can see what's wrong
+        log.exception('Could not write to file')
+        return make_response(("Not sure why,"
+                              " but we couldn't write the file to disk", 500))
+
+    total_chunks = int(request.form['dztotalchunkcount'])
+
+    if current_chunk + 1 == total_chunks:
+        # This was the last chunk, the file should be complete and the size we expect
+        if os.path.getsize(save_path) != int(request.form['dztotalfilesize']):
+            log.error(f"File {file.filename} was completed, "
+                      f"but has a size mismatch."
+                      f"Was {os.path.getsize(save_path)} but we"
+                      f" expected {request.form['dztotalfilesize']} ")
+            return make_response(('Size mismatch', 500))
+        else:
+            log.info(f'File {file.filename} has been uploaded successfully')
+    else:
+        log.debug(f'Chunk {current_chunk + 1} of {total_chunks} '
+                  f'for file {file.filename} complete')
+
+    return make_response(("Chunk upload successful", 200))
 
 
 @app.route("/processing/<video_name>", methods=['GET'])
