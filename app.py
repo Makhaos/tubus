@@ -32,11 +32,10 @@ def download_and_process(video_name):
     main(video)  # TODO get the results here, after work is done, data is deleted
 
 
-@app.route('/sign-s3', methods=['GET'])
+@app.route('/sign-s3/')
 def sign_s3():
     # Load necessary information into the application
-    print('yes this is s3')
-    S3_BUCKET = os.environ.get('S3_BUCKET')
+    S3_BUCKET = BUCKET
 
     # Load required data from the request
     file_name = request.args.get('file-name')
@@ -47,14 +46,14 @@ def sign_s3():
 
     # Generate and return the presigned URL
     presigned_post = s3.generate_presigned_post(
-        bucket_name=S3_BUCKET,
-        object_name=file_name,
-        fields={"acl": "public-read", "Content-Type": file_type},
-        conditions=[
+        Bucket=S3_BUCKET,
+        Key=file_name,
+        Fields={"acl": "public-read", "Content-Type": file_type},
+        Conditions=[
             {"acl": "public-read"},
             {"Content-Type": file_type}
         ],
-        expiration=3600
+        ExpiresIn=3600
     )
 
     # Return the data to the client
@@ -64,7 +63,21 @@ def sign_s3():
     })
 
 
-def allowed_video_type(video_name):
+@app.route("/submit-form/", methods=["POST"])
+def submit_form():
+    # Collect the data posted from the HTML form in account.html:
+    username = request.form["username"]
+    full_name = request.form["full-name"]
+    avatar_url = request.form["avatar-url"]
+
+    # Provide some procedure for storing the new details
+    # update_account(username, full_name, avatar_url)
+
+    # Redirect to the user's profile page, if appropriate
+    return redirect("/storage")
+
+
+def video_type(video_name):
     return '.' in video_name and \
            video_name.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -82,7 +95,7 @@ def upload_video():
         if video.filename == '':
             flash('No selected video')
             return redirect(request.url)
-        if video and allowed_video_type(video.filename):
+        if video and video_type(video.filename):
             video.save(os.path.join(app.config['VIDEOS_FOLDER'], video.filename))
             flash('Uploading')
             upload_file(os.path.join(app.config['VIDEOS_FOLDER'], video.filename), BUCKET, video.filename)
