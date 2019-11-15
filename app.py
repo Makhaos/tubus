@@ -1,4 +1,6 @@
 import os
+import json
+import boto3
 from flask import Flask, render_template, request, redirect, flash, send_file, url_for
 from werkzeug.utils import secure_filename
 from common import utils
@@ -30,9 +32,35 @@ def download_and_process(video_name):
     main(video)  # TODO get the results here, after work is done, data is deleted
 
 
-def upload(video_name):
-    upload_file(os.path.join(app.config['VIDEOS_FOLDER'], video_name), BUCKET, video_name)
-    return redirect("/storage")
+@app.route('/sign-s3/')
+def sign_s3():
+    # Load necessary information into the application
+    S3_BUCKET = os.environ.get('S3_BUCKET')
+
+    # Load required data from the request
+    file_name = request.args.get('file-name')
+    file_type = request.args.get('file-type')
+
+    # Initialise the S3 client
+    s3 = boto3.client('s3')
+
+    # Generate and return the presigned URL
+    presigned_post = s3.generate_presigned_post(
+        Bucket=S3_BUCKET,
+        Key=file_name,
+        Fields={"acl": "public-read", "Content-Type": file_type},
+        Conditions=[
+            {"acl": "public-read"},
+            {"Content-Type": file_type}
+        ],
+        ExpiresIn=3600
+    )
+
+    # Return the data to the client
+    return json.dumps({
+        'data': presigned_post,
+        'url': 'https://%s.s3.amazonaws.com/%s' % (S3_BUCKET, file_name)
+    })
 
 
 def allowed_video_type(video_name):
@@ -46,21 +74,22 @@ def storage():
     return render_template('index.html', videos=videos)
 
 
-@app.route('/uploading', methods=['POST'])
-def upload_video():
-    if request.method == 'POST':
-        video = request.files['video']
-        if video.filename == '':
-            flash('No selected video')
-            return redirect(request.url)
-        if video and allowed_video_type(video.filename):
-            video.save(os.path.join(app.config['VIDEOS_FOLDER'], video.filename))
-            flash('Uploading')
-            q.enqueue(upload, video.filename, job_id='video_uploading', result_ttl=5000)
-            return redirect(request.url)
-        else:
-            flash('File type not supported')
-            return redirect(request.url)
+# @app.route('/uploading', methods=['POST'])
+# def upload_video():
+#     if request.method == 'POST':
+#         video = request.files['video']
+#         if video.filename == '':
+#             flash('No selected video')
+#             return redirect(request.url)
+#         if video and allowed_video_type(video.filename):
+#             video.save(os.path.join(app.config['VIDEOS_FOLDER'], video.filename))
+#             flash('Uploading')
+#             q.enqueue(upload, video.filename, job_id='video_uploading', result_ttl=5000)
+#             upload_file(os.path.join(app.config['VIDEOS_FOLDER'], video.filename), BUCKET, video.filename)
+#             return redirect("/storage")
+#         else:
+#             flash('File type not supported')
+#             return redirect(request.url)
 
 
 @app.route("/processing/<video_name>", methods=['GET'])
