@@ -32,14 +32,16 @@ def download_and_process(video_name):
     main(video)  # TODO get the results here, after work is done, data is deleted
 
 
-@app.route('/sign-s3/')
-def sign_s3():
+@app.route('/sign-s3/<path:file_name_data>/<path:file_type_data>', methods=["GET", "POST"])
+def sign_s3(file_name, file_type):
     # Load necessary information into the application
     S3_BUCKET = BUCKET
 
     # Load required data from the request
-    file_name = request.args.get('file-name')
-    file_type = request.args.get('file-type')
+    # file_name = request.args.get('file-name')
+    print(file_name)
+    # file_type = request.args.get('file-type')
+    print(file_type)
 
     # Initialise the S3 client
     s3 = boto3.client('s3')

@@ -20,7 +20,7 @@ function getSignedRequest(file){
         uploadFile(file, response.data, response.url);
       }
       else{
-        alert("Could not get signed URL.");
+        alert("Could not get signesdfsdfd URL.");
       }
     }
   };

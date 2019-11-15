@@ -234,22 +234,20 @@
             If request successful, continue to upload the file using this signed
             request.
           */
-          function getSignedRequest(file){
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', `/sign-s3?file-name=${file.name}&file-type=${file.type}`);
-            xhr.onreadystatechange = () => {
-              if(xhr.readyState === 4){
-                if(xhr.status === 200){
-                  const response = JSON.parse(xhr.responseText);
-                  uploadFile(file, response.data, response.url);
-                }
-                else{
-                  alert('Could not get signed URL.');
-                }
+          function getSignedRequest(file) {
+          $.ajax({
+              url : "/sign_s3/" + file.name + "/" + file.type,
+              type : "get",
+              success : function(response) {
+                  console.log("success file up, follow", response);
+                  var json_response = JSON.parse(response);
+                  console.log(json_response);
+                  uploadFile(file, json_response.data, json_response.url);
+              },
+              error : function(xhr) {
+                  console.log("file up failed", xhr);
               }
-            };
-            xhr.send();
-          }
+          });
           /*
              Function called when file input updated. If there is a file selected, then
              start upload procedure by asking for a signed request from the app.
