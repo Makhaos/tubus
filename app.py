@@ -47,13 +47,14 @@ def sign_s3():
 
     # Generate and return the presigned URL
     presigned_post = s3.generate_presigned_post(
-        Bucket=S3_BUCKET,
-        Key=file_name,
-        Fields={"acl": "public-read", "Content-Type": file_type},
-        Conditions=[
+        bucket_name=S3_BUCKET,
+        object_name=file_name,
+        fields={"acl": "public-read", "Content-Type": file_type},
+        conditions=[
             {"acl": "public-read"},
             {"Content-Type": file_type}
-        ]
+        ],
+        expiration=3600
     )
 
     # Return the data to the client
