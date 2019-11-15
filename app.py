@@ -53,8 +53,7 @@ def sign_s3():
         Conditions=[
             {"acl": "public-read"},
             {"Content-Type": file_type}
-        ],
-        ExpiresIn=3600
+        ]
     )
 
     # Return the data to the client
