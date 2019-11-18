@@ -1,20 +1,18 @@
 import os
-from flask import Flask, render_template, request, redirect, flash, send_file, url_for, make_response
-from rq.job import Job
+from flask import Flask, render_template, request, redirect, flash, make_response, send_file
 from werkzeug.utils import secure_filename
 from common import utils
-from common.aws_manager import upload_file, download_file, list_files
+from common.aws_manager import upload_file, download_file, list_files, list_videos
 from worker import conn
 from rq import Queue
 from src.main import main
 import logging
-import time
+
 
 root = utils.get_project_root()
 os.makedirs(os.path.join(str(root), 'data', 'videos'), exist_ok=True)
 VIDEOS_FOLDER = os.path.join(str(root), 'data', 'videos')
 BUCKET = "tubus-system"
-ALLOWED_EXTENSIONS = {'avi', 'mov', 'flv', 'mp4'}
 
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
@@ -22,45 +20,22 @@ app.config['VIDEOS_FOLDER'] = VIDEOS_FOLDER
 
 q = Queue(connection=conn, default_timeout=3600)
 
-log = logging.getLogger('pydrop')
+log = logging.getLogger('tubus')
 
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    videos = list_videos("tubus-system")
+    results = list_files("tubus-system")
+    return render_template('index.html', videos=videos, results=results)
 
 
 def download_and_process(video_name):
     video = download_file(video_name, BUCKET)
     main(video)
-
-
-def video_type(video_name):
-    return '.' in video_name and \
-           video_name.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-@app.route("/storage")
-def storage():
-    videos = list_files("tubus-system")
-    return render_template('index.html', videos=videos)
-
-
-@app.route('/uploading', methods=['POST'])
-def upload_video():
-    if request.method == 'POST':
-        video = request.files['video']
-        if video.filename == '':
-            flash('No selected video')
-            return redirect(request.url)
-        if video and video_type(video.filename):
-            video.save(os.path.join(app.config['VIDEOS_FOLDER'], video.filename))
-            flash('Uploading')
-            upload_file(os.path.join(app.config['VIDEOS_FOLDER'], video.filename), BUCKET, video.filename)
-            return redirect("/storage")
-        else:
-            flash('File type not supported')
-            return redirect(request.url)
+    video_name_no_extension, video_name_extension = os.path.splitext(video_name)
+    upload_file(os.path.join(str(root), 'data', 'files', video_name_no_extension, 'blur_results.txt'), BUCKET,
+                os.path.join(video_name_no_extension + '.txt'))
 
 
 @app.route('/upload', methods=['POST'])
@@ -103,52 +78,28 @@ def upload():
         log.debug(f'Chunk {current_chunk + 1} of {total_chunks} '
                   f'for file {file.filename} complete')
 
-    return make_response(("Chunk upload successful", 200))
+    return make_response(('Chunk upload complete', 200))
 
 
 @app.route("/processing/<video_name>", methods=['GET'])
 def processing_video(video_name):
     if request.method == 'GET':
         # Background process of video processing
-        background_process = q.enqueue(download_and_process, video_name, job_id='video_processing', result_ttl=5000)
+        q.enqueue(download_and_process, video_name, job_id='video_processing', result_ttl=5000)
         flash('Video is processing')
-        return render_template('index.html'), job_status(video_name)
+        return redirect("/")
 
 
-@app.route('/results', methods=['POST'])
-def show_results():
-    if request.method == 'POST':
-        if os.path.exists(os.path.join(str(root), 'data')):
-            print('data exists')
-            results = 'data exists'
-            if os.path.exists(os.path.join(str(root), 'data', 'files')):
-                print('files exists')
-                results = 'files exists'
-            else:
-                print('there are no files')
-                results = 'there are no files'
-        else:
-            print('there is no data')
-            results = 'there is no data'
-        videos = list_files("tubus-system")
-        return render_template('index.html', results=results, videos=videos)
-
-
-def job_status(video_name):
-    job = Job.fetch('video_processing', connection=conn)
-    while True:
-        job.refresh()
-        print(job.get_id(), job.get_status(), job.meta.get('word'))
-        if job.is_finished:
-            with open(os.path.join(str(root), 'data', 'files', video_name, 'blur_results.txt'), 'r') as reader:
-                results = reader
-            videos = list_files("tubus-system")
-            return render_template('index.html', results=results, videos=videos)
-        else:
-            flash('Video is processing')
-            time.sleep(5)
-            return render_template('index.html'), job_status(video_name)
+@app.route("/results/<results>", methods=['GET'])
+def download_results(results):
+    if request.method == 'GET':
+        print(results)
+        file = download_file(results, BUCKET)
+        return send_file(file,
+                         mimetype='text/txt',
+                         attachment_filename=results,
+                         as_attachment=True)
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=4034)

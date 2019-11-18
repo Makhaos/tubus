@@ -73,8 +73,8 @@
         </a>
         <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
           <div class="bg-white py-2 collapse-inner rounded">
-            <a class="collapse-item" href="{{ url_for('index') }}">Project1 - to be changed dynamically</a>
-            <a class="collapse-item" href="{{ url_for('index') }}">Project2 - to be changed dynamically</a>
+            <a class="collapse-item" href="{{ url_for('index') }}">Project1</a>
+            <a class="collapse-item" href="{{ url_for('index') }}">Project2</a>
           </div>
         </div>
       </li>
@@ -119,32 +119,12 @@
           <!-- Topbar Navbar -->
           <ul class="navbar-nav ml-auto">
 
-            <!-- Nav Item - Search Dropdown (Visible Only XS) -->
-            <li class="nav-item dropdown no-arrow d-sm-none">
-              <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fas fa-search fa-fw"></i>
-              </a>
-              <!-- Dropdown - Messages -->
-              <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in" aria-labelledby="searchDropdown">
-                <form class="form-inline mr-auto w-100 navbar-search">
-                  <div class="input-group">
-                    <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2">
-                    <div class="input-group-append">
-                      <button class="btn btn-primary" type="button">
-                        <i class="fas fa-search fa-sm"></i>
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </li>
-
             <div class="topbar-divider d-none d-sm-block"></div>
 
             <!-- Nav Item - User Information -->
             <li class="nav-item dropdown no-arrow">
               <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <span class="mr-2 d-none d-lg-inline text-gray-600 small">User 1 - to be changed dynamically</span>
+                <span class="mr-2 d-none d-lg-inline text-gray-600 small">User 1</span>
                 <img class="img-profile rounded-circle" src="https://source.unsplash.com/Kj2SaNHG-hg">
               </a>
               <!-- Dropdown - User Information -->
@@ -178,27 +158,6 @@
         <div class="container-fluid">
 
           <!-- Page Heading -->
-          <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Projects</h1>
-            <form action="/uploading" method="POST" enctype=multipart/form-data>
-              <label class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                <input class="fas fa-download fa-sm text-white-50" type="file" name="video" onchange="this.form.submit()" hidden>
-                Upload videos
-              </label>
-            </form>
-            <form action="/results" method="POST" enctype=multipart/form-data>
-              <label class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                <input class="fas fa-download fa-sm text-white-50" type="submit" hidden>
-                Show Results
-              </label>
-            </form>
-            <form action="/sign-s3/" method="POST" enctype=multipart/form-data>
-              <label class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                <input class="fas fa-download fa-sm text-white-50" type="file" name="video" onchange="this.form.submit()" hidden>
-                  Upload directly
-              </label>
-            </form>
-          </div>
           <form method="POST" action='/upload' class="dropzone dz-clickable"
                 id="dropper" enctype="multipart/form-data">
           </form>
@@ -209,7 +168,7 @@
                   forceChunking: true,
                   url: '/upload',
                   maxFilesize: 1025, // megabytes
-                  chunkSize: 1000000 // bytes
+                  chunkSize: 20000000 // bytes
               }
           </script>
             {% with messages = get_flashed_messages() %}
@@ -224,7 +183,6 @@
               {% endif %}
             {% endwith %}
             {% block body %}{% endblock %}
-
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                   <h6 class="m-0 font-weight-bold text-primary">Videos</h6>
@@ -233,7 +191,8 @@
                   <ul>
                   {% for video in videos %}
                     <li>
-                      <a href="/processing/{{ video.Key }}"> {{ video.Key }} </a>
+                      <a id="videoLink" title="{{ video.Key }}"
+                         href="/processing/{{ video.Key }}"> {{ video.Key }} </a>
                     </li>
                   {% endfor %}
                   </ul>
@@ -244,11 +203,14 @@
                   <h6 class="m-0 font-weight-bold text-primary">Results</h6>
                 </div>
                 <div class="card-body">
+                  <ul>
                   {% for result in results %}
-
-                      {{ result }}
-
+                    <li>
+                      <a id="fileLink" title="{{ result.Key }}"
+                         href="/results/{{ result.Key }}"> {{ result.Key }} </a>
+                    </li>
                   {% endfor %}
+                  </ul>
                 </div>
             </div>
           </div>
@@ -280,25 +242,6 @@
   <a class="scroll-to-top rounded" href="#page-top">
     <i class="fas fa-angle-up"></i>
   </a>
-
-  <!-- Logout Modal-->
-  <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-          <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">×</span>
-          </button>
-        </div>
-        <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-        <div class="modal-footer">
-          <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-          <a class="btn btn-primary" href="{{ url_for('index') }}">Logout</a>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Bootstrap core JavaScript-->
   <script src="/static/vendor/jquery/jquery.min.js"></script>

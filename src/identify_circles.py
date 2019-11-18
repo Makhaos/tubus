@@ -6,15 +6,17 @@ from PIL import Image
 import os
 import common.utils as utils
 import src.color_detection as cd
+
 root = utils.get_project_root()
 
 
 class Images:
     def __init__(self, video_name):
-        self.res_image_folder_name = os.path.join(str(root), 'data','frames', video_name, 'res')
-        self.image_folder_name = os.path.join(str(root), 'data', 'frames',video_name, 'raw')
+        self.res_image_folder_name = os.path.join(str(root), 'data', 'frames', video_name, 'res')
+        self.image_folder_name = os.path.join(str(root), 'data', 'frames', video_name, 'raw')
         self.scatter_image_folder_name = os.path.join(str(root), 'data', 'frames', video_name, 'scatter')
         self.circle_image_folder_name = os.path.join(str(root), 'data', 'frames', video_name, 'circles')
+
     pixel_value = 20
 
 
@@ -35,7 +37,7 @@ class ScatterImages(Images):
     def get_res(self, yellow_low, yellow_high):  # Creates images with bitmap and writes them to res folder
         yellow_low_str = '_'.join([str(i) for i in yellow_low])
         yellow_high_str = '_'.join([str(i) for i in yellow_high])
-        res_folder_name = os.path.join(self.res_image_folder_name+yellow_low_str+'__' + yellow_high_str)
+        res_folder_name = os.path.join(self.res_image_folder_name + yellow_low_str + '__' + yellow_high_str)
         cd.ColorDetector(self.image_folder_name, res_folder_name).detect_yellow(yellow_low, yellow_high)
 
     def get_scatter_plot(self):  # Plots scatter plots and writes them to scatter folder
@@ -62,7 +64,7 @@ class EdgeDetection(Images):
     total_contour_list = list()
     updated_contour_list = list()
 
-    def get_edges(self): # Identifies the edges in the image
+    def get_edges(self):  # Identifies the edges in the image
         contour_list = list()
         scatter_image_folder_name = self.scatter_image_folder_name
         os.makedirs(scatter_image_folder_name, exist_ok=True)
@@ -156,7 +158,6 @@ class CirclePosition(Images):
                 plt.savefig(os.path.join(self.circle_image_folder_name, image_name))
             plt.close()
             found_circle = True
-
 
 
 def main():

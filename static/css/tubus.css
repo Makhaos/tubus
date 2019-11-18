@@ -1,7 +1,3 @@
 #tubus_icon{
   width: 50%;
 }
-
-#testing.click(function() {
-  alert("test");
-});

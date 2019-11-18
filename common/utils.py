@@ -4,6 +4,8 @@ import os
 import numpy as np
 from PIL import Image
 
+ALLOWED_EXTENSIONS = {'.avi', '.mov', '.flv', '.mp4', '.AVI'}
+
 
 def get_project_root() -> Path:
     """Returns project root folder."""
