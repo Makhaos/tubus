@@ -8,6 +8,7 @@ from worker import conn
 from rq import Queue
 from src.main import main
 import logging
+import time
 
 root = utils.get_project_root()
 os.makedirs(os.path.join(str(root), 'data', 'videos'), exist_ok=True)
@@ -143,6 +144,10 @@ def job_status(video_name):
                 results = reader
             videos = list_files("tubus-system")
             return render_template('index.html', results=results, videos=videos)
+        else:
+            flash('Video is processing')
+            time.sleep(5)
+            return render_template('index.html'), job_status(video_name)
 
 
 if __name__ == "__main__":
