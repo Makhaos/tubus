@@ -117,20 +117,18 @@ def processing_video(video_name):
 @app.route('/results', methods=['POST'])
 def show_results():
     if request.method == 'POST':
-        # if os.path.exists(os.path.join(str(root), 'data')):
-        #     print('data exists')
-        #     results = 'data exists'
-        #     if os.path.exists(os.path.join(str(root), 'data', 'files')):
-        #         print('files exists')
-        #         results = 'files exists'
-        #     else:
-        #         print('there are no files')
-        #         results = 'there are no files'
-        # else:
-        #     print('there is no data')
-        #     results = 'there is no data'
-        job_id = request.GET
-
+        if os.path.exists(os.path.join(str(root), 'data')):
+            print('data exists')
+            results = 'data exists'
+            if os.path.exists(os.path.join(str(root), 'data', 'files')):
+                print('files exists')
+                results = 'files exists'
+            else:
+                print('there are no files')
+                results = 'there are no files'
+        else:
+            print('there is no data')
+            results = 'there is no data'
         videos = list_files("tubus-system")
         return render_template('index.html', results=results, videos=videos)
 
