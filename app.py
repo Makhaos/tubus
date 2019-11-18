@@ -1,5 +1,6 @@
 import os
 from flask import Flask, render_template, request, redirect, flash, send_file, url_for, make_response
+from rq.job import Job
 from werkzeug.utils import secure_filename
 from common import utils
 from common.aws_manager import upload_file, download_file, list_files
@@ -30,7 +31,7 @@ def index():
 
 def download_and_process(video_name):
     video = download_file(video_name, BUCKET)
-    main(video)  # TODO get the results here, after work is done, data is deleted
+    main(video)
 
 
 def video_type(video_name):
@@ -108,29 +109,42 @@ def upload():
 def processing_video(video_name):
     if request.method == 'GET':
         # Background process of video processing
-        q.enqueue(download_and_process, video_name, job_id='video_processing', result_ttl=5000)
-        # main(video)
+        background_process = q.enqueue(download_and_process, video_name, job_id='video_processing', result_ttl=5000)
         flash('Video is processing')
-        return render_template('index.html')
+        return render_template('index.html'), job_status(video_name)
 
 
 @app.route('/results', methods=['POST'])
 def show_results():
     if request.method == 'POST':
-        if os.path.exists(os.path.join(str(root), 'data')):
-            print('data exists')
-            results = 'data exists'
-            if os.path.exists(os.path.join(str(root), 'data', 'files')):
-                print('files exists')
-                results = 'files exists'
-            else:
-                print('there are no files')
-                results = 'there are no files'
-        else:
-            print('there is no data')
-            results = 'there is no data'
+        # if os.path.exists(os.path.join(str(root), 'data')):
+        #     print('data exists')
+        #     results = 'data exists'
+        #     if os.path.exists(os.path.join(str(root), 'data', 'files')):
+        #         print('files exists')
+        #         results = 'files exists'
+        #     else:
+        #         print('there are no files')
+        #         results = 'there are no files'
+        # else:
+        #     print('there is no data')
+        #     results = 'there is no data'
+        job_id = request.GET
+
         videos = list_files("tubus-system")
         return render_template('index.html', results=results, videos=videos)
+
+
+def job_status(video_name):
+    job = Job.fetch('video_processing', connection=conn)
+    while True:
+        job.refresh()
+        print(job.get_id(), job.get_status(), job.meta.get('word'))
+        if job.is_finished:
+            with open(os.path.join(str(root), 'data', 'files', video_name, 'blur_results.txt'), 'r') as reader:
+                results = reader
+            videos = list_files("tubus-system")
+            return render_template('index.html', results=results, videos=videos)
 
 
 if __name__ == "__main__":
