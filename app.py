@@ -82,7 +82,6 @@ def download_and_process(video_name, blur_is_enabled, variance_is_enabled, circl
     video_name_no_extension, video_name_extension = os.path.splitext(video_name)
     upload_file(os.path.join(str(root), 'data', 'files', video_name_no_extension, 'blur_results.txt'), BUCKET,
                 os.path.join(video_name_no_extension + '.txt'))
-    app.jinja_env.globals.update(job_status=job_status, status='done')
 
 
 @app.route("/requesting", methods=['POST'])
@@ -110,15 +109,5 @@ def download_results():
                          as_attachment=True)
 
 
-def job_status(status):
-    # job = Job.fetch('video_processing', connection=conn)
-    # if job.is_finished:
-    if status == 'done':
-        return str('it is done')
-    else:
-        return str(status)
-
-
 if __name__ == "__main__":
-    app.jinja_env.globals.update(job_status=job_status, status='')
     app.run(debug=True, port=4034)
