@@ -32,11 +32,6 @@ def index():
     return render_template('index.html', videos=videos, results=results)
 
 
-# @app.route('/<string:page_name>/')
-# def render_static(page_name):
-#     return render_template('%s.html' % page_name)
-
-
 @app.route('/upload', methods=['POST'])
 def upload():
     file = request.files['file']
@@ -80,11 +75,6 @@ def upload():
     return make_response(('Chunk upload complete', 200))
 
 
-def testing():
-    while True:
-        print('this is true')
-
-
 @app.route('/processing', methods=['POST'])
 def download_and_process(video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled):
     video = download_file(video_name, BUCKET)
@@ -102,11 +92,11 @@ def requesting_video():
     variance_is_enabled = request.form.get('variance')
     circles_is_enabled = request.form.get('circles')
     if blur_is_enabled or variance_is_enabled or circles_is_enabled:
-        print('fsd')
-    # Background process of video processing
-    q.enqueue(download_and_process, video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled,
-              job_id='video_processing', result_ttl=5000)
-    return render_template("loading.html", video_name=video_name, info='is processing', spin='fa-spin')
+        # Background process of video processing
+        q.enqueue(download_and_process, video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled,
+                  job_id='video_processing', result_ttl=5000)
+        return render_template("loading.html", video_name=video_name, info='is processing', spin='fa-spin')
+    return redirect("/")
 
 
 @app.route("/results", methods=['POST'])
