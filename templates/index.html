@@ -17,7 +17,6 @@
   <!-- Custom styles for this template-->
   <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
   <link href="/static/css/tubus.css" rel="stylesheet">
-  <link href="/static/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
 
   <link rel="stylesheet"
    href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/dropzone.min.css"/>
@@ -188,14 +187,18 @@
                   <h6 class="m-0 font-weight-bold text-primary">Videos</h6>
                 </div>
                 <div class="card-body">
-                  <ul>
-                  {% for video in videos %}
-                    <li>
-                      <a id="videoLink" title="{{ video.Key }}"
-                         href="/processing/{{ video.Key }}"> {{ video.Key }} </a>
-                    </li>
-                  {% endfor %}
-                  </ul>
+                  <form action="/processing" method="POST">
+                    <input type="checkbox" name="blur" checked> Blur
+                    <input type="checkbox" name="variance"> Variance (beta)
+                    <input type="checkbox" name="circles"> Circles (beta)
+                    <ul>
+                    {% for video in videos %}
+                        <li>
+                          <button type="submit" name="video" value="{{ video.Key }}" formtarget=”_blank” class="btn btn-link"> {{ video.Key }} </button>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                  </form>
                 </div>
             </div>
             <div class="card shadow mb-4">
@@ -203,14 +206,15 @@
                   <h6 class="m-0 font-weight-bold text-primary">Results</h6>
                 </div>
                 <div class="card-body">
-                  <ul>
-                  {% for result in results %}
-                    <li>
-                      <a id="fileLink" title="{{ result.Key }}"
-                         href="/results/{{ result.Key }}"> {{ result.Key }} </a>
-                    </li>
-                  {% endfor %}
-                  </ul>
+                  <form action="/results" method="POST">
+                    <ul>
+                    {% for result in results %}
+                      <li>
+                        <button type="submit" name="result" value="{{ result.Key }}" class="btn btn-link"> {{ result.Key }} </button>
+                      </li>
+                    {% endfor %}
+                    </ul>
+                  </form>
                 </div>
             </div>
           </div>

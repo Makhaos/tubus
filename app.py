@@ -7,7 +7,7 @@ from worker import conn
 from rq import Queue
 from src.main import main
 import logging
-
+import time
 
 root = utils.get_project_root()
 os.makedirs(os.path.join(str(root), 'data', 'videos'), exist_ok=True)
@@ -30,12 +30,19 @@ def index():
     return render_template('index.html', videos=videos, results=results)
 
 
-def download_and_process(video_name):
+@app.route('/<string:page_name>/')
+def render_static(page_name):
+    return render_template('%s.html' % page_name)
+
+
+@app.route('/done', methods=['POST'])
+def download_and_process(video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled):
     video = download_file(video_name, BUCKET)
-    main(video)
+    main(video, blur=blur_is_enabled, variance=variance_is_enabled, circles=circles_is_enabled)
     video_name_no_extension, video_name_extension = os.path.splitext(video_name)
     upload_file(os.path.join(str(root), 'data', 'files', video_name_no_extension, 'blur_results.txt'), BUCKET,
                 os.path.join(video_name_no_extension + '.txt'))
+    return render_template("loading.html", video_name=video_name, info='processing is completed', spin='')
 
 
 @app.route('/upload', methods=['POST'])
@@ -81,19 +88,24 @@ def upload():
     return make_response(('Chunk upload complete', 200))
 
 
-@app.route("/processing/<video_name>", methods=['GET'])
-def processing_video(video_name):
-    if request.method == 'GET':
-        # Background process of video processing
-        q.enqueue(download_and_process, video_name, job_id='video_processing', result_ttl=5000)
-        flash('Video is processing')
-        return redirect("/")
+@app.route("/processing", methods=['POST'])
+def processing_video():
+    if request.method == 'POST':
+        blur_is_enabled = request.form.get('blur')
+        variance_is_enabled = request.form.get('variance')
+        circles_is_enabled = request.form.get('circles')
+        video_name = request.form.get('video')
+        if blur_is_enabled or variance_is_enabled or circles_is_enabled:
+            # Background process of video processing
+            q.enqueue(download_and_process, video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled,
+                      job_id='video_processing', result_ttl=5000)
+        return render_template("loading.html", video_name=video_name, info='is processing', spin='fa-spin')
 
 
-@app.route("/results/<results>", methods=['GET'])
-def download_results(results):
-    if request.method == 'GET':
-        print(results)
+@app.route("/results", methods=['POST'])
+def download_results():
+    if request.method == 'POST':
+        results = request.form.get('result')
         file = download_file(results, BUCKET)
         return send_file(file,
                          mimetype='text/txt',
