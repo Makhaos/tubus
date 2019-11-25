@@ -170,24 +170,13 @@
                   chunkSize: 20000000 // bytes
               }
           </script>
-            {% with messages = get_flashed_messages() %}
-              {% if messages %}
-              <div class="p-2 bg-gradient-danger text-white">
-                <ul class=flashes>
-                {% for message in messages %}
-                    {{ message }}
-                {% endfor %}
-                </ul>
-              </div>
-              {% endif %}
-            {% endwith %}
             {% block body %}{% endblock %}
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                   <h6 class="m-0 font-weight-bold text-primary">Videos</h6>
                 </div>
                 <div class="card-body">
-                  <form action="/processing" method="POST">
+                  <form action="/requesting" method="POST">
                     <input type="checkbox" name="blur" checked> Blur
                     <input type="checkbox" name="variance"> Variance (beta)
                     <input type="checkbox" name="circles"> Circles (beta)

@@ -1,5 +1,7 @@
 import os
-from flask import Flask, render_template, request, redirect, flash, make_response, send_file
+from flask import Flask, render_template, request, redirect, make_response, send_file, stream_with_context, Response, \
+    jsonify, url_for
+from rq.job import Job
 from werkzeug.utils import secure_filename
 from common import utils
 from common.aws_manager import upload_file, download_file, list_files, list_videos
@@ -30,19 +32,9 @@ def index():
     return render_template('index.html', videos=videos, results=results)
 
 
-@app.route('/<string:page_name>/')
-def render_static(page_name):
-    return render_template('%s.html' % page_name)
-
-
-@app.route('/done', methods=['POST'])
-def download_and_process(video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled):
-    video = download_file(video_name, BUCKET)
-    main(video, blur=blur_is_enabled, variance=variance_is_enabled, circles=circles_is_enabled)
-    video_name_no_extension, video_name_extension = os.path.splitext(video_name)
-    upload_file(os.path.join(str(root), 'data', 'files', video_name_no_extension, 'blur_results.txt'), BUCKET,
-                os.path.join(video_name_no_extension + '.txt'))
-    return render_template("loading.html", video_name=video_name, info='processing is completed', spin='')
+# @app.route('/<string:page_name>/')
+# def render_static(page_name):
+#     return render_template('%s.html' % page_name)
 
 
 @app.route('/upload', methods=['POST'])
@@ -88,18 +80,33 @@ def upload():
     return make_response(('Chunk upload complete', 200))
 
 
-@app.route("/processing", methods=['POST'])
-def processing_video():
-    if request.method == 'POST':
-        blur_is_enabled = request.form.get('blur')
-        variance_is_enabled = request.form.get('variance')
-        circles_is_enabled = request.form.get('circles')
-        video_name = request.form.get('video')
-        if blur_is_enabled or variance_is_enabled or circles_is_enabled:
-            # Background process of video processing
-            q.enqueue(download_and_process, video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled,
-                      job_id='video_processing', result_ttl=5000)
-        return render_template("loading.html", video_name=video_name, info='is processing', spin='fa-spin')
+def testing():
+    while True:
+        print('this is true')
+
+
+@app.route('/processing', methods=['POST'])
+def download_and_process(video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled):
+    video = download_file(video_name, BUCKET)
+    main(video, blur=blur_is_enabled, variance=variance_is_enabled, circles=circles_is_enabled)
+    video_name_no_extension, video_name_extension = os.path.splitext(video_name)
+    upload_file(os.path.join(str(root), 'data', 'files', video_name_no_extension, 'blur_results.txt'), BUCKET,
+                os.path.join(video_name_no_extension + '.txt'))
+    app.jinja_env.globals.update(job_status=job_status, status='done')
+
+
+@app.route("/requesting", methods=['POST'])
+def requesting_video():
+    video_name = request.form.get('video')
+    blur_is_enabled = request.form.get('blur')
+    variance_is_enabled = request.form.get('variance')
+    circles_is_enabled = request.form.get('circles')
+    if blur_is_enabled or variance_is_enabled or circles_is_enabled:
+        print('fsd')
+    # Background process of video processing
+    q.enqueue(download_and_process, video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled,
+              job_id='video_processing', result_ttl=5000)
+    return render_template("loading.html", video_name=video_name, info='is processing', spin='fa-spin')
 
 
 @app.route("/results", methods=['POST'])
@@ -113,5 +120,15 @@ def download_results():
                          as_attachment=True)
 
 
+def job_status(status):
+    # job = Job.fetch('video_processing', connection=conn)
+    # if job.is_finished:
+    if status == 'done':
+        return str('it is done')
+    else:
+        return str(status)
+
+
 if __name__ == "__main__":
+    app.jinja_env.globals.update(job_status=job_status, status='')
     app.run(debug=True, port=4034)
