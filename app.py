@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, make_response, send
 from rq.job import Job
 from werkzeug.utils import secure_filename
 from common import utils
-from common.aws_manager import upload_file, download_file, list_files, list_videos
+from common.aws_manager import upload_file, download_file, dynamo_list, list_videos
 from worker import conn
 from rq import Queue
 from src.main import main
@@ -28,8 +28,8 @@ log = logging.getLogger('tubus')
 @app.route('/')
 def index():
     videos = list_videos("tubus-system")
-    results = list_files("tubus-system")
-    return render_template('index.html', videos=videos, results=results)
+    results_list = dynamo_list('blur')
+    return render_template('index.html', videos=videos, results_list=results_list)
 
 
 @app.route('/upload', methods=['POST'])
@@ -79,9 +79,9 @@ def upload():
 def download_and_process(video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled):
     video = download_file(video_name, BUCKET)
     main(video, blur=blur_is_enabled, variance=variance_is_enabled, circles=circles_is_enabled)
-    video_name_no_extension, video_name_extension = os.path.splitext(video_name)
-    upload_file(os.path.join(str(root), 'data', 'files', video_name_no_extension, 'blur_results.txt'), BUCKET,
-                os.path.join(video_name_no_extension + '.txt'))
+    # video_name_no_extension, video_name_extension = os.path.splitext(video_name)
+    # upload_file(os.path.join(str(root), 'data', 'files', video_name_no_extension, 'blur_results.txt'), BUCKET,
+    #             os.path.join(video_name_no_extension + '.txt'))
 
 
 @app.route("/requesting", methods=['POST'])
@@ -92,16 +92,18 @@ def requesting_video():
     circles_is_enabled = request.form.get('circles')
     if blur_is_enabled or variance_is_enabled or circles_is_enabled:
         # Background process of video processing
-        q.enqueue(download_and_process, video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled,
-                  job_id='video_processing', result_ttl=5000)
+        # q.enqueue(download_and_process, video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled)
+        download_and_process(video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled)
         return render_template("loading.html", video_name=video_name, info='is processing', spin='fa-spin')
     return redirect("/")
 
 
-@app.route("/results", methods=['POST'])
+@app.route("/download_results", methods=['POST'])
+# TODO change it to use dynamo
 def download_results():
     if request.method == 'POST':
         results = request.form.get('result')
+        results = os.path.join(results + ".txt")
         file = download_file(results, BUCKET)
         return send_file(file,
                          mimetype='text/txt',

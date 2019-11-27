@@ -2,6 +2,7 @@ import cv2
 import os
 import common.utils as utils
 import common.plot as plot
+import common.aws_manager as aws_manager
 
 
 class BlurDetector:
@@ -27,7 +28,8 @@ class BlurDetector:
         root = utils.get_project_root()
         video_name = os.path.basename(os.path.dirname(self.frames_raw))
         os.makedirs(os.path.join(str(root), 'data', 'files', video_name), exist_ok=True)
-        with open(os.path.join(str(root), 'data', 'files', video_name, 'blur_results.txt'), 'w') as writer:
+        # TODO clean up txt creation
+        with open(os.path.join(str(root), 'data', 'files', video_name, 'blur_results.json'), 'w') as writer:
             blurry_list = []
             writer.write('Video: ' + video_name + '\n')
             try:
@@ -44,6 +46,13 @@ class BlurDetector:
                 plot.plot_list(self.fm_list, video_name, 'blur_plot')
                 print('Blur results completed. File located at',
                       os.path.join(str(root), 'data', 'files', video_name, 'blur_results.txt'))
+                data = {
+                    'name': video_name,
+                    'blur_images': str(blurry_list),
+                    'blur_percentage': str(round(len(blurry_list) / len(self.fm_list), 2) * 100) + ' % ',
+                    'type': 'blur'
+                }
+                aws_manager.dynamo_upload(data)
             except ZeroDivisionError as error:
                 print(error, 'in method blur_results:\n',
                       'To get results, the Laplacian needs to be calculated before. '
