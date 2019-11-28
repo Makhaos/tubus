@@ -35,3 +35,35 @@ def rgb_2_gray_scale(image_file):
     img = Image.open(image_file).convert("L")
     arr = np.asarray(img)
     return arr
+
+
+def progress_bar_subroutine(data, total):
+    dict_of_percentages = {}
+    blur_percentage = 0
+    no_blur_percentage = 0
+    counter = 0
+    if data[str(0)] == 'blur':
+        blur_bool = True
+    else:
+        blur_bool = False
+    for index in range(total):
+        if data[str(index)] == 'blur':
+            blur_percentage = blur_percentage + 100 / total
+            if not blur_bool:
+                dict_of_percentages[str(counter)] = {str(round(no_blur_percentage)): 'no_blur'}
+                no_blur_percentage = 0
+                counter += 1
+            blur_bool = 'blur'
+        if data[str(index)] == 'no_blur':
+            no_blur_percentage = no_blur_percentage + 100 / total
+            if blur_bool:
+                dict_of_percentages[str(counter)] = {str(round(blur_percentage)): 'blur'}
+                blur_percentage = 0
+                counter += 1
+            blur_bool = False
+        if index == total - 1:
+            if blur_bool:
+                dict_of_percentages[str(counter)] = {str(round(blur_percentage)): 'blur'}
+            if not blur_bool:
+                dict_of_percentages[str(counter)] = {str(round(no_blur_percentage)): 'no_blur'}
+    return dict_of_percentages

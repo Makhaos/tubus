@@ -31,6 +31,7 @@ class BlurDetector:
         # TODO clean up txt creation
         with open(os.path.join(str(root), 'data', 'files', video_name, 'blur_results.json'), 'w') as writer:
             blurry_list = []
+            blurry_dict = {}
             writer.write('Video: ' + video_name + '\n')
             try:
                 average = round(sum(self.fm_list) / len(self.fm_list), 2)
@@ -38,6 +39,9 @@ class BlurDetector:
                 for l in self.fm_list:
                     if l < 110:
                         blurry_list.append(self.fm_list.index(l))
+                        blurry_dict[str(self.fm_list.index(l))] = 'blur'
+                    else:
+                        blurry_dict[str(self.fm_list.index(l))] = 'no_blur'
                 writer.write(' ' * 5 + ' List of blurry images ' + str(blurry_list) + '\n')
                 writer.write(' ' * 5 + ' Amount of blurry images ' + str(len(blurry_list)) + ' | ' + ' in ' + str(
                     len(self.fm_list)) + ' total amount of images ' + '\n')
@@ -46,10 +50,13 @@ class BlurDetector:
                 plot.plot_list(self.fm_list, video_name, 'blur_plot')
                 print('Blur results completed. File located at',
                       os.path.join(str(root), 'data', 'files', video_name, 'blur_results.txt'))
+                progressbar_dict = utils.progress_bar_subroutine(blurry_dict, len(self.fm_list))
                 data = {
                     'name': video_name,
-                    'blur_images': str(blurry_list),
+                    'blur_images': blurry_dict,
                     'blur_percentage': str(round(len(blurry_list) / len(self.fm_list), 2) * 100) + ' % ',
+                    'total_images': str(len(self.fm_list)),
+                    'progress_bar': progressbar_dict,
                     'type': 'blur'
                 }
                 aws_manager.dynamo_upload(data)
