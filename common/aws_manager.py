@@ -4,7 +4,7 @@ import os
 from common import utils
 
 root = utils.get_project_root()
-dynamodb = boto3.resource('dynamodb')
+dynamodb = boto3.resource('dynamodb', region_name='eu-north-1')
 table = dynamodb.Table('Videos')
 
 
