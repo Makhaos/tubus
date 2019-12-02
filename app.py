@@ -1,15 +1,12 @@
 import os
-from flask import Flask, render_template, request, redirect, make_response, send_file, stream_with_context, Response, \
-    jsonify, url_for
-from rq.job import Job
+from flask import Flask, render_template, request, redirect, make_response, send_file
 from werkzeug.utils import secure_filename
 from common import utils
 from common.aws_manager import upload_file, download_file, dynamo_list, list_videos
 from worker import conn
 from rq import Queue
-from src.main import main
+from src.main import main, download_and_process
 import logging
-import time
 
 root = utils.get_project_root()
 os.makedirs(os.path.join(str(root), 'data', 'videos'), exist_ok=True)
@@ -75,15 +72,6 @@ def upload():
     return make_response(('Chunk upload complete', 200))
 
 
-@app.route('/processing', methods=['POST'])
-def download_and_process(video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled):
-    video = download_file(video_name, BUCKET)
-    main(video, blur=blur_is_enabled, variance=variance_is_enabled, circles=circles_is_enabled)
-    # video_name_no_extension, video_name_extension = os.path.splitext(video_name)
-    # upload_file(os.path.join(str(root), 'data', 'files', video_name_no_extension, 'blur_results.txt'), BUCKET,
-    #             os.path.join(video_name_no_extension + '.txt'))
-
-
 @app.route("/requesting", methods=['POST'])
 def requesting_video():
     video_name = request.form.get('video')
@@ -92,7 +80,7 @@ def requesting_video():
     circles_is_enabled = request.form.get('circles')
     if blur_is_enabled or variance_is_enabled or circles_is_enabled:
         # Background process of video processing
-        q.enqueue(download_and_process, video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled)
+        q.enqueue(download_and_process, video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled, BUCKET)
         # download_and_process(video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled)
         return render_template("loading.html", video_name=video_name, info='is processing', spin='fa-spin')
     return redirect("/")
@@ -112,4 +100,4 @@ def download_results():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=4034)
+    app.run(debug=True, host='0.0.0.0', port=5000)

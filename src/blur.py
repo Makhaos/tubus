@@ -48,13 +48,12 @@ class BlurDetector:
                 writer.write(' ' * 5 + ' Percentage of blurry images ' + str(
                     round(len(blurry_list) / len(self.fm_list), 2) * 100) + ' % ' + '\n')
                 plot.plot_list(self.fm_list, video_name, 'blur_plot')
-                print('Blur results completed. File located at',
-                      os.path.join(str(root), 'data', 'files', video_name, 'blur_results.txt'))
                 progressbar_dict = utils.progress_bar_subroutine(blurry_dict, len(self.fm_list))
                 data = {
                     'name': video_name,
                     'blur_images': blurry_dict,
-                    'blur_percentage': str(round(len(blurry_list) / len(self.fm_list), 2) * 100) + ' % ',
+                    'blur_percentage': str(round(len(blurry_list) / len(self.fm_list) * 100)) + ' % ',
+                    'focused_percentage': str(100-round(len(blurry_list) / len(self.fm_list) * 100)) + ' % ',
                     'total_images': str(len(self.fm_list)),
                     'progress_bar': progressbar_dict,
                     'type': 'blur'

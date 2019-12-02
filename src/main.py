@@ -1,7 +1,13 @@
 import os
 import time
-import common.utils as utils
+from common import utils
+from common.aws_manager import download_file
 from src import video_to_frames, blur, color_detection, identify_pixels, identify_circles
+
+
+def download_and_process(video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled, bucket):
+    video = download_file(video_name, bucket)
+    main(video, blur=blur_is_enabled, variance=variance_is_enabled, circles=circles_is_enabled)
 
 
 def main(video, **kwargs):
