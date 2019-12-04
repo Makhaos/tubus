@@ -17,7 +17,7 @@ def main(video, **kwargs):
     circles_is_enabled = kwargs.get('circles', False)
     root = utils.get_project_root()
     frames_folder = os.path.join(str(root), 'data', 'frames')
-    frames_creator = video_to_frames.FramesCreator(video, frames_folder, crop=True)
+    frames_creator = video_to_frames.FramesCreator(video, frames_folder, fps=1, crop=True)
     frames_creator.get_frame()
     video_name_no_extension, video_name_extension = os.path.splitext(video)
     frames_raw = os.path.join(str(root), 'data', 'frames', video_name_no_extension, 'raw')
