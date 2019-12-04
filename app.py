@@ -81,7 +81,6 @@ def requesting_video():
     if blur_is_enabled or variance_is_enabled or circles_is_enabled:
         # Background process of video processing
         q.enqueue(download_and_process, video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled, BUCKET)
-        # download_and_process(video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled)
         return render_template("loading.html", video_name=video_name, info='is processing', spin='fa-spin')
     return redirect("/")
 
