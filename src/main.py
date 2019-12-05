@@ -4,6 +4,9 @@ from common import utils
 from common.aws_manager import download_file
 from src import video_to_frames, blur, color_detection, identify_pixels, identify_circles
 
+root = utils.get_project_root()
+os.makedirs(os.path.join(str(root), 'data', 'videos'), exist_ok=True)
+
 
 def download_and_process(video_name, blur_is_enabled, variance_is_enabled, circles_is_enabled, bucket):
     video = download_file(video_name, bucket)
