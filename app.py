@@ -1,8 +1,8 @@
 import os
-from flask import Flask, render_template, request, redirect, make_response, send_file
+from flask import Flask, render_template, request, redirect, make_response, Response
 from werkzeug.utils import secure_filename
-from common import utils
-from common.aws_manager import upload_file, download_file, dynamo_list, list_videos
+from common import utils, aws_manager
+from common.aws_manager import upload_file, dynamo_list, list_videos
 from worker import conn
 from rq import Queue
 from src.main import download_and_process
@@ -86,16 +86,14 @@ def requesting_video():
 
 
 @app.route("/download_results", methods=['POST'])
-# TODO change it to use dynamo
 def download_results():
     if request.method == 'POST':
-        results = request.form.get('result')
-        results = os.path.join(results + ".txt")
-        file = download_file(results, BUCKET)
-        return send_file(file,
-                         mimetype='text/txt',
-                         attachment_filename=results,
-                         as_attachment=True)
+        video_name = request.form.get('video')
+        results = str(aws_manager.dynamo_download(video_name))
+        return Response(
+            results,
+            mimetype="text/txt",
+            headers={"Content-disposition": "attachment; filename=results.txt"})
 
 
 if __name__ == "__main__":
