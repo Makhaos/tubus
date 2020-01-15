@@ -5,6 +5,7 @@ import os
 import common.utils as utils
 import sys
 import warnings
+
 root = utils.get_project_root()
 
 
@@ -12,13 +13,14 @@ class Variance:
     def __init__(self, image):
         self.image = image
         self.video_directory = os.path.split(os.path.split(image)[0])[0]
+
     pixel_value = 20
     variance = 0
 
     if not sys.warnoptions:  # Ignore runtime warning
         warnings.simplefilter("ignore")
 
-    def create_grayscale_from_rgb(self): #  Yields a grayscale image from raw image
+    def create_grayscale_from_rgb(self):  # Yields a grayscale image from raw image
         grayscale_image = Image.open(self.image).convert("L")
         grayscale_array = np.asarray(grayscale_image)
         self.grayscale_array = grayscale_array[:, 50:][:, :-50]
@@ -61,7 +63,6 @@ class WritingCSV(Variance):
 
 
 def main():
-
     video_name = 'T20190823155414'
     raw_image_folder_name = os.path.join(str(root), 'data', video_name, 'raw')
     variance_index = 0
@@ -78,6 +79,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
